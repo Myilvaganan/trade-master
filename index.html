@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Premium Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <header>
+    <h1>Techie Beast</h1>
+    <p>Smart Trading & Analytics System</p>
+  </header>
+
+  <section class="card-container">
+
+    <div class="card" onclick="goTo('./pages/trading.html')">
+      <h2>Trading Checklist</h2>
+      <p>Options & Technical Analysis</p>
+    </div>
+
+    <!--
+  <div class="card" onclick="goTo('./pages/dashboard.html')">
+    <h2>Dashboard</h2>
+    <p>Live Market Overview</p>
+  </div>
+  -->
+
+   <div class="card" onclick="goTo('./pages/chart_analyzer.html')">
+    <h2>Chart Analyzer</h2>
+    <p>Advanced Charting Tools</p>
+  </div>
+
+    <div class="card" onclick="goTo('./pages/contact.html')">
+      <h2>Contact</h2>
+      <p>Support & Help Desk</p>
+    </div>
+
+  </section>
+
+  <script>
+    function goTo(page) {
+      console.log(page);
+      window.location.href = page;
+    }
+  </script>
+
+</body>
+
+</html>
