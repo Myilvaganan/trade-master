@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Trade Checklist — NIFTY Trader</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #040d0a;
+      --surface: #0a1a13;
+      --surface2: #0f2318;
+      --green: #00ff88;
+      --green-dim: #00cc6a;
+      --green-dark: #003d1f;
+      --red: #ff3355;
+      --red-dim: #cc2244;
+      --red-dark: #3d000f;
+      --yellow: #ffcc00;
+      --blue: #00aaff;
+      --text: #c8e6d4;
+      --text-dim: #5a8a6a;
+      --border: #1a3a28;
+      --border-bright: #2a5a3a;
+      --glow-green: 0 0 20px rgba(0, 255, 136, 0.3);
+      --glow-red: 0 0 20px rgba(255, 51, 85, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(0, 255, 136, 0.15);
+      animation: scanline 6s linear infinite;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @keyframes scanline {
+      0% {
+        top: 0;
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 0.5;
+      }
+
+      100% {
+        top: 100vh;
+        opacity: 0;
+      }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+
+    /* HEADER */
+    header {
+      text-align: center;
+      padding: 40px 0 30px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 1px;
+      background: var(--green);
+      box-shadow: var(--glow-green);
+    }
+
+    .ticker-bar {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .ticker-bar span {
+      color: var(--green);
+    }
+
+    .main-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 8vw, 72px);
+      letter-spacing: 6px;
+      color: var(--green);
+      text-shadow: 0 0 40px rgba(0, 255, 136, 0.4), 0 0 80px rgba(0, 255, 136, 0.15);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--red-dark);
+      border: 1px solid var(--red-dim);
+      color: var(--red);
+      font-size: 9px;
+      letter-spacing: 3px;
+      padding: 3px 10px;
+      margin-top: 14px;
+      text-transform: uppercase;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.7);
+      }
+    }
+
+    /* SECTION TITLES */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+      color: var(--green);
+    }
+
+    .section-label .num {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      box-shadow: var(--glow-green);
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-bright), transparent);
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 10px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-bright);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+    }
+
+    .card.green::before {
+      background: var(--green);
+    }
+
+    .card.red::before {
+      background: var(--red);
+    }
+
+    .card.yellow::before {
+      background: var(--yellow);
+    }
+
+    .card.blue::before {
+      background: var(--blue);
+    }
+
+    /* INDICATOR JOBS TABLE */
+    .jobs-grid {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .job-row {
+      display: grid;
+      grid-template-columns: 160px 1fr 100px;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    @media(max-width: 520px) {
+      .job-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+    }
+
+    .job-name {
+      color: var(--green);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .job-desc {
+      color: var(--text);
+      font-size: 11px;
+    }
+
+    .job-type {
+      text-align: right;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* LAYER BLOCKS */
+    .layer {
+      margin-bottom: 28px;
+    }
+
+    .layer-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .layer-header.l1 {
+      background: rgba(0, 170, 255, 0.08);
+      border-left: 3px solid var(--blue);
+      color: var(--blue);
+    }
+
+    .layer-header.l2 {
+      background: rgba(0, 255, 136, 0.06);
+      border-left: 3px solid var(--green);
+      color: var(--green);
+    }
+
+    .layer-header.l3 {
+      background: rgba(255, 204, 0, 0.06);
+      border-left: 3px solid var(--yellow);
+      color: var(--yellow);
+    }
+
+    /* ZONE DISPLAY */
+    .zones {
+      display: grid;
+      gap: 3px;
+      margin: 10px 0;
+    }
+
+    .zone-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .zone-row.r2 {
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--green);
+    }
+
+    .zone-row.r1 {
+      background: rgba(0, 255, 136, 0.07);
+      color: var(--green-dim);
+    }
+
+    .zone-row.pivot {
+      background: rgba(255, 204, 0, 0.08);
+      color: var(--yellow);
+      font-weight: 700;
+    }
+
+    .zone-row.s1 {
+      background: rgba(255, 51, 85, 0.07);
+      color: var(--red-dim);
+    }
+
+    .zone-row.s2 {
+      background: rgba(255, 51, 85, 0.12);
+      color: var(--red);
+    }
+
+    .zone-line {
+      flex: 1;
+      border-top: 1px dashed currentColor;
+      opacity: 0.3;
+    }
+
+    /* SIGNAL BOXES */
+    .signal-box {
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      line-height: 1.9;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .signal-box.bull {
+      background: var(--green-dark);
+      border: 1px solid rgba(0, 255, 136, 0.25);
+    }
+
+    .signal-box.bear {
+      background: var(--red-dark);
+      border: 1px solid rgba(255, 51, 85, 0.25);
+    }
+
+    .signal-box.warn {
+      background: rgba(255, 204, 0, 0.05);
+      border: 1px solid rgba(255, 204, 0, 0.2);
+    }
+
+    .signal-box .tag {
+      font-size: 9px;
+      letter-spacing: 3px;
+      display: block;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+
+    .signal-box.bull .tag {
+      color: var(--green);
+    }
+
+    .signal-box.bear .tag {
+      color: var(--red);
+    }
+
+    .signal-box.warn .tag {
+      color: var(--yellow);
+    }
+
+    .check {
+      color: var(--green);
+    }
+
+    .cross {
+      color: var(--red);
+    }
+
+    .warn-sym {
+      color: var(--yellow);
+    }
+
+    /* NOISE TABLE */
+    .noise-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin: 10px 0;
+    }
+
+    .noise-table th {
+      padding: 8px 12px;
+      text-align: left;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      font-weight: 400;
+    }
+
+    .noise-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(26, 58, 40, 0.5);
+      vertical-align: top;
+      line-height: 1.5;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .noise-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 8px;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .badge.noise {
+      background: rgba(255, 204, 0, 0.15);
+      color: var(--yellow);
+      border: 1px solid rgba(255, 204, 0, 0.3);
+    }
+
+    .badge.confirm {
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .badge.skip {
+      background: rgba(255, 51, 85, 0.12);
+      color: var(--red);
+      border: 1px solid rgba(255, 51, 85, 0.3);
+    }
+
+    /* SCORE SYSTEM */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .score-card {
+      padding: 14px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .score-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 38px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .score-card.s5 {
+      background: rgba(0, 255, 136, 0.1);
+      border-color: var(--green);
+    }
+
+    .score-card.s5 .score-num {
+      color: var(--green);
+      text-shadow: var(--glow-green);
+    }
+
+    .score-card.s4 {
+      background: rgba(0, 255, 136, 0.05);
+      border-color: rgba(0, 255, 136, 0.3);
+    }
+
+    .score-card.s4 .score-num {
+      color: var(--green-dim);
+    }
+
+    .score-card.s3 {
+      background: rgba(255, 204, 0, 0.05);
+      border-color: rgba(255, 204, 0, 0.3);
+    }
+
+    .score-card.s3 .score-num {
+      color: var(--yellow);
+    }
+
+    .score-card.s2 {
+      background: rgba(255, 51, 85, 0.08);
+      border-color: rgba(255, 51, 85, 0.3);
+    }
+
+    .score-card.s2 .score-num {
+      color: var(--red);
+    }
+
+    .score-label {
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+    }
+
+    .score-action {
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .score-card.s5 .score-action {
+      color: var(--green);
+    }
+
+    .score-card.s4 .score-action {
+      color: var(--green-dim);
+    }
+
+    .score-card.s3 .score-action {
+      color: var(--yellow);
+    }
+
+    .score-card.s2 .score-action {
+      color: var(--red);
+    }
+
+    /* LIVE CHECKLIST */
+    .checklist {
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .checklist-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checklist-title.bull {
+      color: var(--green);
+    }
+
+    .checklist-title.bear {
+      color: var(--red);
+    }
+
+    .checklist-title.neutral {
+      color: var(--yellow);
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(26, 58, 40, 0.4);
+      font-size: 11px;
+      line-height: 1.6;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .check-item:last-child {
+      border-bottom: none;
+    }
+
+    .check-box {
+      width: 16px;
+      height: 16px;
+      border: 1px solid;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .check-box.bull-box {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .check-box.bear-box {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .check-box.bull-box.checked {
+      background: var(--green);
+      color: var(--bg);
+    }
+
+    .check-box.bear-box.checked {
+      background: var(--red);
+      color: var(--bg);
+    }
+
+    .check-text {
+      flex: 1;
+    }
+
+    .check-text strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .check-text.bull strong {
+      color: var(--green);
+    }
+
+    .check-text.bear strong {
+      color: var(--red);
+    }
+
+    /* GOLDEN RULE */
+    .golden-rule {
+      border: 1px solid var(--green);
+      padding: 24px;
+      text-align: center;
+      background: rgba(0, 255, 136, 0.04);
+      box-shadow: var(--glow-green);
+      margin: 30px 0;
+      position: relative;
+    }
+
+    .golden-rule::before {
+      content: '★ GOLDEN RULE ★';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg);
+      padding: 0 12px;
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--green);
+    }
+
+    .golden-rule p {
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text);
+      font-style: italic;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .golden-rule strong {
+      color: var(--green);
+    }
+
+    /* TIMEFRAME RULES */
+    .tf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .tf-card {
+      padding: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .tf-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .tf-card.daily .tf-title {
+      color: var(--blue);
+    }
+
+    .tf-card.m15 .tf-title {
+      color: var(--green);
+    }
+
+    .tf-card.m3 .tf-title {
+      color: var(--yellow);
+    }
+
+    .tf-desc {
+      font-size: 10px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .tf-desc strong {
+      color: var(--text);
+    }
+
+    /* RESET BTN */
+    .reset-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border-bright);
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: all 0.2s;
+    }
+
+    .reset-btn:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(0, 255, 136, 0.05);
+    }
+
+    /* SCORE DISPLAY */
+    .live-score {
+      text-align: center;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      transition: all 0.3s;
+    }
+
+    .live-score .score-display {
+      font-size: 42px;
+      line-height: 1;
+      transition: color 0.3s;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 0 10px;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
+      margin: 30px 0;
+    }
+
+    .rsi-bar {
+      height: 24px;
+      background: linear-gradient(90deg,
+          rgba(255, 51, 85, 0.6) 0%,
+          rgba(255, 51, 85, 0.3) 30%,
+          rgba(255, 204, 0, 0.3) 45%,
+          rgba(255, 204, 0, 0.5) 50%,
+          rgba(0, 255, 136, 0.3) 55%,
+          rgba(0, 255, 136, 0.6) 100%);
+      border-radius: 2px;
+      margin: 8px 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .rsi-marker {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateX(-50%);
+    }
+
+    .rsi-marker .line {
+      width: 1px;
+      height: 24px;
+      background: white;
+      opacity: 0.8;
+    }
+
+    .rsi-marker .lbl {
+      font-size: 8px;
+      position: absolute;
+      bottom: -16px;
+      white-space: nowrap;
+      color: var(--text-dim);
+    }
+
+    .rsi-marker.m0 {
+      left: 0%;
+    }
+
+    .rsi-marker.m30 {
+      left: 30%;
+    }
+
+    .rsi-marker.m50 {
+      left: 50%;
+    }
+
+    .rsi-marker.m70 {
+      left: 70%;
+    }
+
+    .rsi-marker.m100 {
+      left: 100%;
+    }
+
+    .macd-states {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .macd-state {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      font-size: 10px;
+      line-height: 1.6;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .macd-state .state-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 2px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .macd-state.s1 {
+      background: rgba(0, 255, 136, 0.1);
+      border-color: rgba(0, 255, 136, 0.3);
+    }
+
+    .macd-state.s1 .state-num {
+      color: var(--green);
+    }
+
+    .macd-state.s2 {
+      background: rgba(0, 255, 136, 0.04);
+      border-color: rgba(0, 255, 136, 0.15);
+    }
+
+    .macd-state.s2 .state-num {
+      color: var(--green-dim);
+    }
+
+    .macd-state.s3 {
+      background: rgba(255, 51, 85, 0.1);
+      border-color: rgba(255, 51, 85, 0.3);
+    }
+
+    .macd-state.s3 .state-num {
+      color: var(--red);
+    }
+
+    .macd-state.s4 {
+      background: rgba(255, 51, 85, 0.04);
+      border-color: rgba(255, 51, 85, 0.15);
+    }
+
+    .macd-state.s4 .state-num {
+      color: var(--red-dim);
+    }
+
+    @media (max-width: 600px) {
+      .macd-states {
+        grid-template-columns: 1fr;
+      }
+
+      .score-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="scanline"></div>
+
+  <div class="container">
+
+    <!-- HEADER -->
+    <header>
+      <div class="ticker-bar">
+        <span>NIFTY 50</span> · <span>15M</span> · <span>INDICES</span> · <span>NSE</span>
+      </div>
+      <div class="main-title">TRADE CHECKLIST</div>
+      <div class="subtitle">Live Indicator Framework — 5 Tool System</div>
+      <div><span class="live-badge"><span class="live-dot"></span> Live Chart Reference</span></div>
+    </header>
+
+    <!-- ============ SECTION 1: INDICATOR JOBS ============ -->
+    <div class="section-label">
+      <div class="num">1</div> INDICATOR ROLES — WHO DOES WHAT
+    </div>
+
+    <div class="jobs-grid">
+      <div class="job-row">
+        <div class="job-name">📐 PIVOT POINTS</div>
+        <div class="job-desc">Where is price in the battlefield? Defines key zones of support/resistance</div>
+        <div class="job-type">Structure</div>
+      </div>
+      <div class="job-row">
+        <div class="job-name">📈 SUPERTREND</div>
+        <div class="job-desc">What direction is the trend? Green = Up trend, Red = Down trend</div>
+        <div class="job-type">Trend</div>
+      </div>
+      <div class="job-row">
+        <div class="job-name">📉 BOLLINGER BANDS</div>
+        <div class="job-desc">How much energy does the move have? Measures volatility and momentum strength</div>
+        <div class="job-type">Volatility</div>
+      </div>
+      <div class="job-row">
+        <div class="job-name">🔵 RSI 14</div>
+        <div class="job-desc">How strong is the momentum? Above 50 = bulls, Below 50 = bears</div>
+        <div class="job-type">Momentum</div>
+      </div>
+      <div class="job-row">
+        <div class="job-name">📊 MACD</div>
+        <div class="job-desc">Is momentum increasing or dying? Histogram growing = trend strengthening</div>
+        <div class="job-type">Confirmation</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ============ SECTION 2: 3 LAYERS ============ -->
+    <div class="section-label">
+      <div class="num">2</div> THE 3-LAYER READING ORDER
+    </div>
+
+    <!-- LAYER 1 -->
+    <div class="layer">
+      <div class="layer-header l1">⬛ Layer 1 — WHERE is price? (Pivots + SuperTrend)</div>
+
+      <div class="card blue">
+        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; letter-spacing:2px;">PIVOT ZONES — READ
+          TOP TO BOTTOM</div>
+        <div class="zones">
+          <div class="zone-row r2">R2 <div class="zone-line"></div> Extreme Bull Zone — Profit booking area</div>
+          <div class="zone-row r1">R1 <div class="zone-line"></div> Bull Resistance — Watch for rejection or breakout
+          </div>
+          <div class="zone-row pivot">P&nbsp; <div class="zone-line"></div> THE PIVOT LINE — Most important. Above=Buy
+            bias, Below=Sell bias</div>
+          <div class="zone-row s1">S1 <div class="zone-line"></div> Bear Support — Bounce = Buy setup forming</div>
+          <div class="zone-row s2">S2 <div class="zone-line"></div> Extreme Bear Zone — Panic selling area</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+        <div class="signal-box bull">
+          <span class="tag">✦ SUPERTREND BULL</span>
+          <span class="check">✓</span> Green color 3+ candles<br>
+          <span class="check">✓</span> Price above ST line<br>
+          <span class="check">✓</span> ST line sloping up
+        </div>
+        <div class="signal-box bear">
+          <span class="tag">✦ SUPERTREND BEAR</span>
+          <span class="cross">✗</span> Red color 3+ candles<br>
+          <span class="cross">✗</span> Price below ST line<br>
+          <span class="cross">✗</span> ST line sloping down
+        </div>
+      </div>
+
+      <div class="signal-box warn" style="margin-top:8px;">
+        <span class="tag">⚠ SUPERTREND NOISE WARNING</span>
+        <span class="warn-sym">△</span> ST flipping 3-4 times rapidly = SIDEWAYS MARKET = NO TRADE<br>
+        <span class="warn-sym">△</span> Wait for same color for minimum 3-4 closed candles before acting
+      </div>
+    </div>
+
+    <!-- LAYER 2 -->
+    <div class="layer">
+      <div class="layer-header l2">⬛ Layer 2 — HOW is momentum? (RSI + MACD)</div>
+
+      <div class="card green">
+        <div style="font-size:11px; color:var(--text-dim); margin-bottom:12px; letter-spacing:2px;">RSI ZONES — THE
+          BATTLEFIELD LINE IS 50</div>
+        <div class="rsi-bar">
+          <div class="rsi-marker m0">
+            <div class="line"></div>
+            <div class="lbl">0<br>DEAD</div>
+          </div>
+          <div class="rsi-marker m30">
+            <div class="line"></div>
+            <div class="lbl">30<br>Oversold</div>
+          </div>
+          <div class="rsi-marker m50">
+            <div class="line"></div>
+            <div class="lbl" style="color:var(--yellow); font-weight:700;">50<br>BATTLELINE</div>
+          </div>
+          <div class="rsi-marker m70">
+            <div class="line"></div>
+            <div class="lbl">70<br>Overbought</div>
+          </div>
+          <div class="rsi-marker m100">
+            <div class="line"></div>
+            <div class="lbl">100<br>MAX</div>
+          </div>
+        </div>
+        <div style="margin-top:30px; font-size:10px; line-height:2; font-family:'Space Mono', monospace;">
+          <span style="color:var(--red);">0–30</span> → Oversold (NOT a buy signal alone — wait for confirmation)<br>
+          <span style="color:var(--red-dim);">30–50</span> → Bearish Momentum Zone — sell setups valid<br>
+          <span style="color:var(--yellow);">50</span> → THE BATTLEFIELD — who controls this = who wins<br>
+          <span style="color:var(--green-dim);">50–70</span> → Bullish Momentum Zone — buy setups valid<br>
+          <span style="color:var(--green);">70–100</span> → Overbought (NOT a sell signal alone — ride it in trend)
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <div class="signal-box warn">
+          <span class="tag">⚠ RSI NOISE — IGNORE THESE</span>
+          <span class="cross">✗</span> RSI falling while candle is still forming (live candle noise)<br>
+          <span class="cross">✗</span> RSI touching 50 with one candle wick<br>
+          <span class="cross">✗</span> RSI at 48 for just 1 candle then recovering<br>
+          <span class="cross">✗</span> 3-min RSI moving against 15-min RSI direction
+        </div>
+        <div class="signal-box bull" style="margin-top:8px;">
+          <span class="tag">✦ RSI CONFIRMATION — ACT ON THESE</span>
+          <span class="check">✓</span> RSI closed 2 CONSECUTIVE candles above 50 = Bullish confirmed<br>
+          <span class="check">✓</span> RSI closed 2 CONSECUTIVE candles below 50 = Bearish confirmed<br>
+          <span class="check">✓</span> RSI bouncing from exactly 50 = Strong trend continuation<br>
+          <span class="check">✓</span> RSI making HIGHER LOWS while price dips = Hidden bull strength<br>
+          <span class="check">✓</span> RSI making LOWER HIGHS while price rises = Hidden bear weakness
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <div style="font-size:10px; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px;">MACD — 4 STATES TO
+          KNOW</div>
+        <div class="macd-states">
+          <div class="macd-state s1">
+            <span class="state-num">STATE 1</span>
+            Histogram GREEN + GROWING<br>
+            <strong style="color:var(--green);">→ BEST BUY — Strong Bull</strong>
+          </div>
+          <div class="macd-state s2">
+            <span class="state-num">STATE 2</span>
+            Histogram GREEN + SHRINKING<br>
+            <strong style="color:var(--green-dim);">→ BOOK PROFITS — Bull weakening</strong>
+          </div>
+          <div class="macd-state s3">
+            <span class="state-num">STATE 3</span>
+            Histogram RED + GROWING<br>
+            <strong style="color:var(--red);">→ BEST SELL — Strong Bear</strong>
+          </div>
+          <div class="macd-state s4">
+            <span class="state-num">STATE 4</span>
+            Histogram RED + SHRINKING<br>
+            <strong style="color:var(--red-dim);">→ COVER SHORTS — Bear weakening</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAYER 3 -->
+    <div class="layer">
+      <div class="layer-header l3">⬛ Layer 3 — HOW STRONG is the move? (Bollinger Bands)</div>
+
+      <div class="card yellow">
+        <div style="font-size:10px; line-height:2.2; font-family:'Space Mono', monospace;">
+          <span style="color:var(--yellow); font-weight:700;">SQUEEZE</span> — Bands very narrow = <strong>Big move
+            coming, wait for direction</strong><br>
+          <span style="color:var(--green);">EXPAND UP</span> — Price near upper band, bands widening = <strong>Strong
+            bull momentum — RIDE it, not sell it</strong><br>
+          <span style="color:var(--red);">EXPAND DOWN</span> — Price near lower band, bands widening = <strong>Strong
+            bear — don't buy yet</strong><br>
+          <span style="color:var(--blue);">MIDDLE BAND</span> — In uptrend = buy zone. In downtrend = sell zone<br>
+          <span style="color:var(--text-dim);">OUTSIDE BANDS</span> — Exhaustion possible, wait for pullback to middle
+        </div>
+      </div>
+
+      <div class="signal-box warn" style="margin-top:8px;">
+        <span class="tag">⚠ BIGGEST BB MISTAKE</span>
+        <span class="warn-sym">△</span> Upper BB touch ≠ Sell signal. In strong trend, price RIDES the upper band<br>
+        <span class="warn-sym">△</span> Only call reversal when price CLOSES BELOW THE MIDDLE BAND (20 MA)
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ============ SECTION 3: COMBINATIONS ============ -->
+    <div class="section-label">
+      <div class="num">3</div> PERFECT SETUPS — ALL 5 ALIGNED
+    </div>
+
+    <div class="signal-box bull" style="margin-bottom:8px; padding:20px;">
+      <span class="tag" style="font-size:11px;">✦ PERFECT BUY SETUP — 5/5 ALIGNED</span>
+      <span class="check">✓</span> Price <strong>ABOVE PIVOT</strong> (Layer 1 structure bullish)<br>
+      <span class="check">✓</span> SuperTrend <strong>GREEN</strong> for 3+ closed candles (trend confirmed)<br>
+      <span class="check">✓</span> RSI <strong>ABOVE 50</strong> and holding/rising on closed candle (momentum
+      bullish)<br>
+      <span class="check">✓</span> MACD histogram <strong>GREEN AND GROWING</strong> (momentum increasing)<br>
+      <span class="check">✓</span> BB <strong>expanding upward</strong> OR price bouncing from BB middle band<br><br>
+      <strong style="color:var(--green); font-size:12px;">→ Enter on next candle OPEN after close. Stop below SuperTrend
+        or S1</strong>
+    </div>
+
+    <div class="signal-box bear" style="padding:20px;">
+      <span class="tag" style="font-size:11px;">✦ PERFECT SELL SETUP — 5/5 ALIGNED</span>
+      <span class="cross">✗</span> Price <strong>BELOW PIVOT</strong> (Layer 1 structure bearish)<br>
+      <span class="cross">✗</span> SuperTrend <strong>RED</strong> for 3+ closed candles (trend confirmed)<br>
+      <span class="cross">✗</span> RSI <strong>BELOW 50</strong>, 2 consecutive closed candles (momentum bearish)<br>
+      <span class="cross">✗</span> MACD histogram <strong>RED AND GROWING</strong> (bearish momentum increasing)<br>
+      <span class="cross">✗</span> BB <strong>expanding downward</strong> OR price rejected from BB middle band<br><br>
+      <strong style="color:var(--red); font-size:12px;">→ Enter on next candle OPEN after close. Stop above SuperTrend
+        or R1</strong>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ============ SECTION 4: SCORE SYSTEM ============ -->
+    <div class="section-label">
+      <div class="num">4</div> CONFIDENCE SCORE SYSTEM
+    </div>
+
+    <div class="score-grid">
+      <div class="score-card s5">
+        <div class="score-num">5/5</div>
+        <div class="score-label">All aligned</div>
+        <div class="score-action">FULL POSITION</div>
+      </div>
+      <div class="score-card s4">
+        <div class="score-num">4/5</div>
+        <div class="score-label">Almost aligned</div>
+        <div class="score-action">HALF POSITION</div>
+      </div>
+      <div class="score-card s3">
+        <div class="score-num">3/5</div>
+        <div class="score-label">Mixed signals</div>
+        <div class="score-action">NO TRADE — WAIT</div>
+      </div>
+      <div class="score-card s2">
+        <div class="score-num">≤2</div>
+        <div class="score-label">Conflicting</div>
+        <div class="score-action">ABSOLUTELY NO</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ============ SECTION 5: NOISE TABLE ============ -->
+    <div class="section-label">
+      <div class="num">5</div> NOISE vs CONFIRMATION MASTER TABLE
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="noise-table">
+        <thead>
+          <tr>
+            <th>SITUATION</th>
+            <th>TYPE</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RSI falling while candle still forming</td>
+            <td><span class="badge noise">Noise</span></td>
+            <td style="color:var(--yellow);">Wait for close</td>
+          </tr>
+          <tr>
+            <td>RSI closed 2 consecutive candles below 50</td>
+            <td><span class="badge confirm">Confirmed</span></td>
+            <td style="color:var(--red);">Sell setup valid</td>
+          </tr>
+          <tr>
+            <td>MACD crossover with tiny histogram</td>
+            <td><span class="badge noise">Noise</span></td>
+            <td style="color:var(--yellow);">Skip — weak signal</td>
+          </tr>
+          <tr>
+            <td>MACD crossover with growing histogram</td>
+            <td><span class="badge confirm">Confirmed</span></td>
+            <td style="color:var(--green);">Trade direction</td>
+          </tr>
+          <tr>
+            <td>SuperTrend flipping rapidly (3-4x)</td>
+            <td><span class="badge noise">Noise</span></td>
+            <td style="color:var(--yellow);">Sideways — NO TRADE</td>
+          </tr>
+          <tr>
+            <td>SuperTrend same color for 4+ candles</td>
+            <td><span class="badge confirm">Confirmed</span></td>
+            <td style="color:var(--green);">Trade in that direction</td>
+          </tr>
+          <tr>
+            <td>Price touching pivot with candle wick only</td>
+            <td><span class="badge noise">Noise</span></td>
+            <td style="color:var(--yellow);">Wait for body close</td>
+          </tr>
+          <tr>
+            <td>Price candle BODY closing above/below pivot</td>
+            <td><span class="badge confirm">Confirmed</span></td>
+            <td style="color:var(--green);">Act on signal</td>
+          </tr>
+          <tr>
+            <td>BB bands very narrow (squeeze)</td>
+            <td><span class="badge noise">Noise</span></td>
+            <td style="color:var(--yellow);">Wait for breakout</td>
+          </tr>
+          <tr>
+            <td>BB bands expanding with price momentum</td>
+            <td><span class="badge confirm">Confirmed</span></td>
+            <td style="color:var(--green);">Strong move — trade it</td>
+          </tr>
+          <tr>
+            <td>3-min RSI contradicts 15-min RSI direction</td>
+            <td><span class="badge noise">Noise</span></td>
+            <td style="color:var(--yellow);">Trust 15-min (boss)</td>
+          </tr>
+          <tr>
+            <td>1HR RSI + 15-min RSI both above 50</td>
+            <td><span class="badge confirm">Confirmed</span></td>
+            <td style="color:var(--green);">Strong buy bias</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ============ SECTION 6: TIMEFRAME RULES ============ -->
+    <div class="section-label">
+      <div class="num">6</div> TIMEFRAME HIERARCHY
+    </div>
+
+    <div class="tf-grid">
+      <div class="tf-card daily">
+        <div class="tf-title">Daily / 1HR</div>
+        <div class="tf-desc"><strong>THE BOSS — Big trend direction</strong><br>If 1HR RSI above 50 → only look for BUYS
+          on lower timeframes.<br>Never fight this.</div>
+      </div>
+      <div class="tf-card m15">
+        <div class="tf-title">15-Minute</div>
+        <div class="tf-desc"><strong>THE SETUP — Trade confirmation</strong><br>Apply all 5 indicators here. This is
+          your primary decision chart.</div>
+      </div>
+      <div class="tf-card m3">
+        <div class="tf-title">3-Minute</div>
+        <div class="tf-desc"><strong>THE TIMER — Entry precision</strong><br>Only use to fine-tune entry. 3-min signal
+          must agree with 15-min direction.</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ============ SECTION 7: INTERACTIVE CHECKLIST ============ -->
+    <div class="section-label">
+      <div class="num">7</div> INTERACTIVE PRE-TRADE CHECKLIST
+    </div>
+
+    <div class="live-score" id="liveScore">
+      CURRENT SCORE
+      <div class="score-display" id="scoreDisplay" style="color:var(--text-dim);">0 / 5</div>
+      <div id="scoreVerdict" style="font-size:11px; letter-spacing:2px; margin-top:4px;">TICK INDICATORS BELOW</div>
+    </div>
+
+    <div class="checklist">
+      <div class="checklist-title bull">✦ LAYER 1 — STRUCTURE</div>
+
+      <div class="check-item">
+        <div class="check-box bull-box" onclick="toggle(this)" id="c1">□</div>
+        <div class="check-text bull">
+          <strong>PIVOT — Price above Pivot line?</strong>
+          Body of candle closed above Pivot = Buy bias confirmed
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-box bull-box" onclick="toggle(this)" id="c2">□</div>
+        <div class="check-text bull">
+          <strong>SUPERTREND — Green for 3+ closed candles?</strong>
+          Not flipping back and forth — sustained green direction
+        </div>
+      </div>
+    </div>
+
+    <div class="checklist">
+      <div class="checklist-title bull">✦ LAYER 2 — MOMENTUM</div>
+
+      <div class="check-item">
+        <div class="check-box bull-box" onclick="toggle(this)" id="c3">□</div>
+        <div class="check-text bull">
+          <strong>RSI — Above 50 on CLOSED candle?</strong>
+          Two consecutive candle closes above 50 = confirmed. Not live candle.
+        </div>
+      </div>
+      <div class="check-item">
+        <div class="check-box bull-box" onclick="toggle(this)" id="c4">□</div>
+        <div class="check-text bull">
+          <strong>MACD — Histogram green AND growing?</strong>
+          Crossover happened + histogram bars getting bigger = State 1
+        </div>
+      </div>
+    </div>
+
+    <div class="checklist">
+      <div class="checklist-title bull">✦ LAYER 3 — ENERGY</div>
+
+      <div class="check-item">
+        <div class="check-box bull-box" onclick="toggle(this)" id="c5">□</div>
+        <div class="check-text bull">
+          <strong>BOLLINGER BANDS — Expanding upward or price at middle band?</strong>
+          Bands widening upward = trend move. Price at middle band = buy zone bounce.
+        </div>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetAll()">↺ RESET ALL CHECKBOXES</button>
+
+    <div class="divider"></div>
+
+    <!-- GOLDEN RULE -->
+    <div class="golden-rule">
+      <p>
+        "Take a trade ONLY when all 5 indicators speak the <strong>same language</strong> on a <strong>CLOSED
+          candle.</strong><br>
+        If even one is confused — the market is giving you a warning.<br>
+        <strong>Live candle movement is just noise until it closes.</strong>"
+      </p>
+    </div>
+
+    <!-- TODAY'S LESSON -->
+    <div class="section-label">
+      <div class="num">8</div> TODAY'S LESSON — FEB 23 TRAP
+    </div>
+
+    <div class="card red" style="padding:18px;">
+      <div style="font-size:10px; color:var(--text-dim); letter-spacing:2px; margin-bottom:10px;">WHAT WENT WRONG — THE
+        SEQUENCE</div>
+      <div style="font-family:'Space Mono', monospace; font-size:11px; line-height:2.2;">
+        Morning low near S1 (25,379) → RSI oversold<br>
+        Sharp spike UP → RSI shot to 70+<br>
+        Price consolidated → RSI dropped to 57<br>
+        <span style="color:var(--red);">❌ You saw RSI falling → SOLD</span><br><br>
+        What the indicators were actually saying:<br>
+        <span style="color:var(--green);">✓ Pivot: Price above pivot</span><br>
+        <span style="color:var(--green);">✓ SuperTrend: Green</span><br>
+        <span style="color:var(--green);">✓ RSI: 57 — still ABOVE 50 (bull zone)</span><br>
+        <span style="color:var(--green);">✓ MACD: Green histogram, fresh crossover</span><br>
+        <span style="color:var(--green);">✓ BB: Expanding upward</span><br><br>
+        <strong style="color:var(--yellow);">Score was 5/5 BUY. Only 1 thing tricked you: RSI was falling on a LIVE
+          candle = pure noise.</strong>
+      </div>
+    </div>
+
+    <footer>
+      <div style="margin-bottom:6px; color:var(--text-dim);">⚠ EDUCATIONAL PURPOSE ONLY — NOT SEBI REGISTERED FINANCIAL
+        ADVICE</div>
+      <div>Always use stop losses · Trade only what you can afford to lose</div>
+      <div style="margin-top:10px; color:var(--border-bright);">NIFTY 50 · 15M FRAMEWORK · v1.0</div>
+    </footer>
+
+  </div>
+
+  <script>
+    function toggle(el) {
+      el.classList.toggle('checked');
+      el.textContent = el.classList.contains('checked') ? '✓' : '□';
+      updateScore();
+    }
+
+    function updateScore() {
+      const boxes = document.querySelectorAll('.check-box');
+      let count = 0;
+      boxes.forEach(b => { if (b.classList.contains('checked')) count++; });
+
+      const display = document.getElementById('scoreDisplay');
+      const verdict = document.getElementById('scoreVerdict');
+      display.textContent = count + ' / 5';
+
+      if (count === 5) {
+        display.style.color = 'var(--green)';
+        verdict.style.color = 'var(--green)';
+        verdict.textContent = '✓ FULL POSITION — TAKE TRADE';
+      } else if (count === 4) {
+        display.style.color = 'var(--green-dim)';
+        verdict.style.color = 'var(--green-dim)';
+        verdict.textContent = '◑ HALF POSITION — MEDIUM CONFIDENCE';
+      } else if (count === 3) {
+        display.style.color = 'var(--yellow)';
+        verdict.style.color = 'var(--yellow)';
+        verdict.textContent = '△ WAIT — 50/50 NOT WORTH THE RISK';
+      } else if (count <= 2 && count > 0) {
+        display.style.color = 'var(--red)';
+        verdict.style.color = 'var(--red)';
+        verdict.textContent = '✗ NO TRADE — SIGNALS CONFLICTING';
+      } else {
+        display.style.color = 'var(--text-dim)';
+        verdict.style.color = 'var(--text-dim)';
+        verdict.textContent = 'TICK INDICATORS BELOW';
+      }
+    }
+
+    function resetAll() {
+      document.querySelectorAll('.check-box').forEach(b => {
+        b.classList.remove('checked');
+        b.textContent = '□';
+      });
+      updateScore();
+    }
+  </script>
+</body>
+
+</html>
