@@ -1,10 +1,10 @@
 {
-    "name": "Techie Beast Trading",
+    "name": "Trade Master",
     "short_name": "Trade Master",
     "start_url": "./index.html",
     "display": "standalone",
-    "background_color": "#080c10",
-    "theme_color": "#00e5ff",
+    "background_color": "#064e3b",
+    "theme_color": "#064e3b",
     "orientation": "portrait",
     "icons": [
         {
