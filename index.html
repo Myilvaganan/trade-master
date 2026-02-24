@@ -6,8 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Techie Trader</title>
 
+  <link rel="icon" type="image/svg+xml" href="./public/MYILLOGO.svg" />
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00e5ff">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
   <style>
     /* ===============================
@@ -208,13 +213,13 @@
 
   <!-- NAVIGATION -->
   <nav class="top-nav">
-    <div class="nav-logo" >Techie Beast</div>
+    <div class="nav-logo">Techie Beast</div>
     <ul class="nav-links">
       <li><a href="index.html" class="active">Home</a></li>
       <li><a href="./pages/trading_dashboard.html">Tools</a></li>
       <li><a href="./pages/trading.html">Checklist</a></li>
       <li><a href="./pages/chart_analyzer.html">Charts</a></li>
-      <li><a href="./pages/contact.html">Contact</a></li>
+      <li><a href="./pages/contact.html">Profile</a></li>
     </ul>
   </nav>
 
@@ -255,6 +260,15 @@
     }
   </script>
 
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .then(reg => console.log("Service Worker Registered"))
+          .catch(err => console.error("SW Error:", err));
+      });
+    }
+  </script>
 </body>
 
 </html>
