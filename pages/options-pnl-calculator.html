@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options P&L Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #ffffff; color: #e0e0e0; min-height: 100vh; padding: 20px; }
+  .container { max-width: 480px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 1.4rem; margin-bottom: 4px; background: linear-gradient(90deg, #00c6ff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { text-align: center; font-size: 0.75rem; color: #888; margin-bottom: 20px; }
+  .toggle-row { display: flex; background: #1a1a2e; border-radius: 10px; padding: 4px; margin-bottom: 20px; gap: 4px; }
+  .toggle-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: #888; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+  .toggle-btn.ce.active { color: #4ade80; border: 1px solid #4ade8055; background: #4ade8011; }
+  .toggle-btn.pe.active { color: #f87171; border: 1px solid #f8717155; background: #f8717111; }
+  .card { background: #1a1a2e; border-radius: 14px; padding: 18px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
+  .card-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 14px; }
+  .input-group { margin-bottom: 14px; }
+  .input-group label { display: block; font-size: 0.78rem; color: #aaa; margin-bottom: 5px; }
+  .input-row { display: flex; gap: 8px; }
+  .input-row .input-group { flex: 1; margin-bottom: 0; }
+  input[type="number"] { width: 100%; background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 1rem; outline: none; }
+  input[type="number"]:focus { border-color: #a78bfa; }
+  .hint { font-size: 0.7rem; color: #555; margin-top: 4px; }
+  .auto-tag { display: inline-block; background: #a78bfa22; color: #a78bfa; font-size: 0.65rem; padding: 2px 7px; border-radius: 20px; margin-left: 6px; }
+  .calc-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; background: linear-gradient(135deg, #00c6ff, #a78bfa); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+  .result-card { background: #1a1a2e; border-radius: 14px; padding: 18px; border: 1px solid #2a2a4a; display: none; }
+  .result-card.show { display: block; }
+  .result-card.profit { border-color: #4ade8044; }
+  .result-card.loss { border-color: #f8717144; }
+  .pnl-main { text-align: center; padding: 16px 0 12px; }
+  .pnl-label { font-size: 0.75rem; color: #888; margin-bottom: 4px; }
+  .pnl-amount { font-size: 2.2rem; font-weight: 700; }
+  .pnl-amount.profit { color: #4ade80; }
+  .pnl-amount.loss { color: #f87171; }
+  .pnl-return { font-size: 0.85rem; margin-top: 4px; }
+  .pnl-return.profit { color: #4ade8099; }
+  .pnl-return.loss { color: #f8717199; }
+  .divider { border: none; border-top: 1px solid #2a2a4a; margin: 14px 0; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-box { background: #0f0f1a; border-radius: 8px; padding: 10px 12px; }
+  .stat-label { font-size: 0.68rem; color: #666; margin-bottom: 3px; }
+  .stat-value { font-size: 0.95rem; font-weight: 600; color: #e0e0e0; }
+  .breakeven-row { display: flex; justify-content: space-between; align-items: center; background: #0f0f1a; border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  .delta-section { margin-top: 14px; }
+  .delta-title { font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .delta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .delta-box { background: #0f0f1a; border-radius: 8px; padding: 8px 10px; text-align: center; }
+  .delta-box .stat-value { font-size: 0.85rem; color: #a78bfa; }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; margin-bottom: 10px; }
+  .tag.ce { background: #4ade8022; color: #4ade80; }
+  .tag.pe { background: #f8717122; color: #f87171; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ Options P&L Calculator</h1>
+  <p class="subtitle">NSE Options — CE / PE</p>
+  <div class="toggle-row">
+    <button class="toggle-btn ce" onclick="setType('CE')">📈 CALL (CE)</button>
+    <button class="toggle-btn pe" onclick="setType('PE')">📉 PUT (PE)</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Premium Details</div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Buy Premium (₹)</label>
+        <input type="number" id="buyPrice" placeholder="e.g. 29" oninput="autoCalc()">
+      </div>
+      <div class="input-group">
+        <label>Sell / Current (₹)</label>
+        <input type="number" id="sellPrice" placeholder="e.g. 39.25" oninput="autoCalc()">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Lot Details</div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Lot Size <span class="auto-tag">units/lot</span></label>
+        <input type="number" id="lotSize" placeholder="e.g. 65" oninput="autoCalc()">
+        <!--<div class="hint">Nifty=75, BankNifty=35, FinNifty=65</div>/-->
+      </div>
+      <div class="input-group">
+        <label>No. of Lots</label>
+        <input type="number" id="numLots" placeholder="e.g. 25" oninput="autoCalc()">
+      </div>
+       <div class="input-group">
+        <label>Brokerage Percentage</label>
+        <input type="number" id="brokeragePct" placeholder="e.g. 0.05" oninput="autoCalc()" step="0.01" min="0" max="1">
+      </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Delta Estimator (Optional)</div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Delta (0.1–1.0)</label>
+        <input type="number" id="delta" placeholder="0.5 = ATM" step="0.1" min="0.1" max="1" oninput="autoCalc()">
+      </div>
+      <div class="input-group">
+        <label>Move (pts)</label>
+        <input type="number" id="niftyMove" placeholder="e.g. 100" oninput="autoCalc()">
+      </div>
+    </div>
+  </div>
+  <button class="calc-btn" onclick="calculate()">Calculate P&L</button>
+  <div class="result-card" id="resultCard">
+    <div id="optionTag" class="tag">PE</div>
+    <div class="pnl-main">
+      <div class="pnl-label">Total P&L</div>
+      <div class="pnl-amount" id="pnlAmount">₹0</div>
+      <div class="pnl-return" id="pnlReturn">0%</div>
+    </div>
+    <hr class="divider">
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-label">Buy Value</div><div class="stat-value" id="buyVal">—</div></div>
+      <div class="stat-box"><div class="stat-label">Sell Value</div><div class="stat-value" id="sellVal">—</div></div>
+      <div class="stat-box"><div class="stat-label">Per Unit Gain</div><div class="stat-value" id="perUnit">—</div></div>
+      <div class="stat-box"><div class="stat-label">Brokerage</div><div class="stat-value" id="brokerage">—</div></div>
+      <div class="stat-box"><div class="stat-label">Per Lot Profit</div><div class="stat-value" id="perLot">—</div></div>
+    </div>
+    <div class="breakeven-row">
+      <div class="stat-label">Breakeven Premium</div>
+      <div class="stat-value" id="breakeven" style="color:#facc15">—</div>
+    </div>
+    <div class="delta-section" id="deltaSection" style="display:none">
+      <hr class="divider">
+      <div class="delta-title">Delta Estimate</div>
+      <div class="delta-grid">
+        <div class="delta-box"><div class="stat-label">Nifty Move</div><div class="stat-value" id="dNifty">—</div></div>
+        <div class="delta-box"><div class="stat-label">Est. Premium Δ</div><div class="stat-value" id="dPremium">—</div></div>
+        <div class="delta-box"><div class="stat-label">Est. P&L</div><div class="stat-value" id="dPnl">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  let optionType = 'PE';
+  function setType(type) {
+    optionType = type;
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.toggle-btn.' + type.toLowerCase()).classList.add('active');
+    autoCalc();
+  }
+  function fmt(n) { return '₹' + n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function autoCalc() {
+    const buy = parseFloat(document.getElementById('buyPrice').value);
+    const sell = parseFloat(document.getElementById('sellPrice').value);
+    const lot = parseFloat(document.getElementById('lotSize').value);
+    const lots = parseFloat(document.getElementById('numLots').value);
+    const brokeragePct = parseFloat(document.getElementById('brokeragePct').value);
+    
+    if (buy && sell && lot && lots && brokeragePct) calculate();
+  }
+  function calculate() {
+    const buy = parseFloat(document.getElementById('buyPrice').value);
+    const sell = parseFloat(document.getElementById('sellPrice').value);
+    const lot = parseFloat(document.getElementById('lotSize').value);
+    const lots = parseFloat(document.getElementById('numLots').value);
+    const delta = parseFloat(document.getElementById('delta').value);
+    const niftyMove = parseFloat(document.getElementById('niftyMove').value);
+    const brokeragePct = parseFloat(document.getElementById('brokeragePct').value);
+
+    if (!buy || !sell || !lot || !lots || !brokeragePct) { alert('Fill all fields'); return; }
+
+    const perUnit = sell - buy;
+    const perLotProfit = perUnit * lot;
+    const totalPnl = perLotProfit * lots;
+    const brokerage = totalPnl * brokeragePct;
+    const buyVal = buy * lot * lots;
+    const sellVal = sell * lot * lots;
+    const returnPct = (totalPnl / buyVal) * 100;
+    const isProfit = totalPnl >= 0;
+
+    const card = document.getElementById('resultCard');
+    card.className = 'result-card show ' + (isProfit ? 'profit' : 'loss');
+
+    const tag = document.getElementById('optionTag');
+    tag.className = 'tag ' + optionType.toLowerCase();
+    tag.textContent = optionType === 'CE' ? '📈 CALL (CE)' : '📉 PUT (PE)';
+
+    const pnlEl = document.getElementById('pnlAmount');
+    pnlEl.textContent = fmt(totalPnl);
+    pnlEl.className = 'pnl-amount ' + (isProfit ? 'profit' : 'loss');
+
+    const retEl = document.getElementById('pnlReturn');
+    retEl.textContent = (isProfit ? '▲ +' : '▼ ') + returnPct.toFixed(2) + '% return';
+    retEl.className = 'pnl-return ' + (isProfit ? 'profit' : 'loss');
+
+    document.getElementById('buyVal').textContent = fmt(buyVal);
+    document.getElementById('sellVal').textContent = fmt(sellVal);
+    document.getElementById('perUnit').textContent = (isProfit ? '+' : '') + '₹' + perUnit.toFixed(2);
+    document.getElementById('perLot').textContent = fmt(perLotProfit);
+    document.getElementById('breakeven').textContent = '₹' + buy.toFixed(2);
+    document.getElementById('brokerage').textContent = fmt(brokerage);
+
+    if (delta && niftyMove) {
+      const sign = optionType === 'PE' ? -1 : 1;
+      const estPremiumChange = delta * niftyMove * sign;
+      const estPnl = estPremiumChange * lot * lots;
+      document.getElementById('dNifty').textContent = (niftyMove > 0 ? '+' : '') + niftyMove + ' pts';
+      document.getElementById('dPremium').textContent = (estPremiumChange > 0 ? '+' : '') + '₹' + estPremiumChange.toFixed(2);
+      document.getElementById('dPnl').textContent = fmt(estPnl);
+      document.getElementById('deltaSection').style.display = 'block';
+    } else {
+      document.getElementById('deltaSection').style.display = 'none';
+    }
+  }
+  window.onload = () => {
+    setType('PE');
+    document.getElementById('buyPrice').value = 0;
+    document.getElementById('sellPrice').value = 0;
+    document.getElementById('lotSize').value = 0;
+    document.getElementById('numLots').value = 0;
+    document.getElementById('brokeragePct').value = 0.35;
+    calculate();
+  };
+</script>
+</body>
+</html>
