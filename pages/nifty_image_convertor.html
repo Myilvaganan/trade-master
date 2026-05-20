@@ -291,6 +291,78 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 1024px) {
+            .container {
+                max-width: 100%;
+                padding: 0 10px;
+            }
+
+            .field-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .subtitle {
+                font-size: 12px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .upload-area {
+                padding: 24px 12px;
+            }
+
+            .upload-icon {
+                font-size: 36px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 12px;
+                margin: 2px;
+            }
+
+            .actions {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .actions .btn {
+                width: 100%;
+            }
+
+            .field-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #apiKeyInput {
+                font-size: 11px;
+                padding: 8px;
+            }
+
+            /* Stack API key controls */
+            .card>div[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 6px !important;
+            }
+
+            .card>div[style*="display: flex"]>* {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -338,8 +410,16 @@
         <div class="card">
             <div class="section-title">1️⃣ Upload Image</div>
             <div class="info-box">
-                💡 <strong>Tip:</strong> Upload a clear screenshot of the NIFTY matchmaking sheet (like the one from
-                your trading group). The AI will extract all values automatically.
+                💡 <strong>Tip:</strong> Upload a clear screenshot of the matchmaking sheet. The AI will extract all
+                values automatically.
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-weight: 700; font-size: 13px; margin-right: 12px;">Index Type:</label>
+                <label style="margin-right: 16px; cursor: pointer;"><input type="radio" name="indexType" value="nifty"
+                        checked> 🎯 NIFTY (±50/100/150)</label>
+                <label style="cursor: pointer;"><input type="radio" name="indexType" value="sensex"> 📊 SENSEX
+                    (±100/200/300/400)</label>
             </div>
 
             <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
@@ -515,13 +595,24 @@
             document.getElementById('convertBtn').disabled = true;
             showStatus(`🤖 ${provider === 'anthropic' ? 'Claude' : 'GPT-4o'} is analyzing the image... This may take 10-20 seconds.`, 'loading');
 
-            const prompt = `Analyze this NIFTY options matchmaking sheet image and extract ALL values into a structured JSON format.
+            const indexType = document.querySelector('input[name="indexType"]:checked')?.value || 'nifty';
+            const isSensex = indexType === 'sensex';
+            const stepInfo = isSensex ? '100/200/300/400 (4 pairs)' : '50/100/150 (3 pairs)';
+            const otm4Fields = isSensex ? `,
+    "J18": "<OTM +400 Close>",
+    "K18": "<OTM +400 Low>",
+    "J19": "<OTM -400 Close>",
+    "K19": "<OTM -400 Low>",
+    "N18": "<ITM -400 Close>",
+    "N19": "<ITM +400 Close>"` : '';
+
+            const prompt = `Analyze this ${isSensex ? 'SENSEX' : 'NIFTY'} options matchmaking sheet image and extract ALL values into a structured JSON format.
 
 The image contains these sections:
 1. MATCHMAKING table with CE and PE Strike Prices and OHLC values
-2. AVG, OTM, ITM derived levels table
+2. AVG, OTM, ITM derived levels table (strikes incremented by ${stepInfo})
 3. Yest. High, Yest. Low, Today's Open
-4. Expiry strategy (ATM, OTM1, OTM2, OTM3 with CALL/PUT values)
+4. Expiry strategy (ATM, OTM1, OTM2, OTM3${isSensex ? ', OTM4' : ''} with CALL/PUT values)
 
 Extract values and return ONLY a valid JSON object (no markdown, no explanation) with this EXACT structure:
 
@@ -540,31 +631,31 @@ Extract values and return ONLY a valid JSON object (no markdown, no explanation)
     "D5": "<PE High>",
     "D6": "<PE Low>",
     "D7": "<PE Close>",
-    "J3": "<OTM +50 Close>",
-    "K3": "<OTM +50 Low>",
-    "J4": "<OTM -50 Close>",
-    "K4": "<OTM -50 Low>",
-    "J8": "<OTM +100 Close>",
-    "K8": "<OTM +100 Low>",
-    "J9": "<OTM -100 Close>",
-    "K9": "<OTM -100 Low>",
-    "J13": "<OTM +150 Close>",
-    "K13": "<OTM +150 Low>",
-    "J14": "<OTM -150 Close>",
-    "K14": "<OTM -150 Low>",
-    "N3": "<ITM -50 Close>",
-    "N4": "<ITM +50 Close>",
-    "N8": "<ITM -100 Close>",
-    "N9": "<ITM +100 Close>",
-    "N13": "<ITM -150 Close>",
-    "N14": "<ITM +150 Close>",
+    "J3": "<OTM +${isSensex ? '100' : '50'} Close>",
+    "K3": "<OTM +${isSensex ? '100' : '50'} Low>",
+    "J4": "<OTM -${isSensex ? '100' : '50'} Close>",
+    "K4": "<OTM -${isSensex ? '100' : '50'} Low>",
+    "J8": "<OTM +${isSensex ? '200' : '100'} Close>",
+    "K8": "<OTM +${isSensex ? '200' : '100'} Low>",
+    "J9": "<OTM -${isSensex ? '200' : '100'} Close>",
+    "K9": "<OTM -${isSensex ? '200' : '100'} Low>",
+    "J13": "<OTM +${isSensex ? '300' : '150'} Close>",
+    "K13": "<OTM +${isSensex ? '300' : '150'} Low>",
+    "J14": "<OTM -${isSensex ? '300' : '150'} Close>",
+    "K14": "<OTM -${isSensex ? '300' : '150'} Low>",
+    "N3": "<ITM -${isSensex ? '100' : '50'} Close>",
+    "N4": "<ITM +${isSensex ? '100' : '50'} Close>",
+    "N8": "<ITM -${isSensex ? '200' : '100'} Close>",
+    "N9": "<ITM +${isSensex ? '200' : '100'} Close>",
+    "N13": "<ITM -${isSensex ? '300' : '150'} Close>",
+    "N14": "<ITM +${isSensex ? '300' : '150'} Close>"${otm4Fields},
     "_date": "<DD/MM/YYYY from image or today>"
   }
 }
 
 Notes:
-- In OTM table: first row (e.g., 23500) is +50, second row (e.g., 23400) is -50 from strike
-- In ITM table: first row is -50, second row is +50 from strike
+- In OTM table: first row is +offset, second row is -offset from strike
+- In ITM table: first row is -offset, second row is +offset from strike
 - Return numbers as strings (preserve decimals)
 - If a value is unclear, use "0"
 - Return ONLY the JSON, nothing else`;
@@ -670,7 +761,7 @@ Notes:
             }
         }
 
-        const fieldLabels = {
+        const fieldLabelsNifty = {
             Q4: 'Yest. High', Q5: 'Yest. Low', Q13: 'Today Open',
             B2: 'CE Strike', D2: 'PE Strike',
             B4: 'CE Open', B5: 'CE High', B6: 'CE Low', B7: 'CE Close',
@@ -686,9 +777,34 @@ Notes:
             N13: 'ITM-150 Close', N14: 'ITM+150 Close'
         };
 
+        const fieldLabelsSensex = {
+            Q4: 'Yest. High', Q5: 'Yest. Low', Q13: 'Today Open',
+            B2: 'CE Strike', D2: 'PE Strike',
+            B4: 'CE Open', B5: 'CE High', B6: 'CE Low', B7: 'CE Close',
+            D4: 'PE Open', D5: 'PE High', D6: 'PE Low', D7: 'PE Close',
+            J3: 'OTM+100 Close', K3: 'OTM+100 Low',
+            J4: 'OTM-100 Close', K4: 'OTM-100 Low',
+            J8: 'OTM+200 Close', K8: 'OTM+200 Low',
+            J9: 'OTM-200 Close', K9: 'OTM-200 Low',
+            J13: 'OTM+300 Close', K13: 'OTM+300 Low',
+            J14: 'OTM-300 Close', K14: 'OTM-300 Low',
+            J18: 'OTM+400 Close', K18: 'OTM+400 Low',
+            J19: 'OTM-400 Close', K19: 'OTM-400 Low',
+            N3: 'ITM-100 Close', N4: 'ITM+100 Close',
+            N8: 'ITM-200 Close', N9: 'ITM+200 Close',
+            N13: 'ITM-300 Close', N14: 'ITM+300 Close',
+            N18: 'ITM-400 Close', N19: 'ITM+400 Close'
+        };
+
+        function getFieldLabels() {
+            const t = document.querySelector('input[name="indexType"]:checked')?.value || 'nifty';
+            return t === 'sensex' ? fieldLabelsSensex : fieldLabelsNifty;
+        }
+
         function displayFields(inputs) {
             const grid = document.getElementById('fieldGrid');
             grid.innerHTML = '';
+            const fieldLabels = getFieldLabels();
             Object.entries(fieldLabels).forEach(([key, label]) => {
                 const val = inputs[key] || '0';
                 const div = document.createElement('div');
@@ -707,6 +823,7 @@ Notes:
 
         function regenerateFromFields() {
             if (!extractedData) return;
+            const fieldLabels = getFieldLabels();
             Object.keys(fieldLabels).forEach(key => {
                 const el = document.getElementById('fld_' + key);
                 if (el) extractedData.inputs[key] = el.value;
@@ -721,9 +838,10 @@ Notes:
 
         function downloadJSON() {
             if (!extractedData) return;
+            const indexType = document.querySelector('input[name="indexType"]:checked')?.value || 'nifty';
             const date = extractedData.inputs._date || new Date().toISOString().split('T')[0];
             const cleanDate = date.replace(/\//g, '-');
-            const filename = `nifty-${cleanDate}.json`;
+            const filename = `${indexType}-${cleanDate}.json`;
             const blob = new Blob([JSON.stringify(extractedData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
