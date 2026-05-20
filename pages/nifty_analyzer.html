@@ -188,6 +188,43 @@
     <div class="container">
         <h1>🎯 NIFTY Options Analyzer</h1>
 
+        <!-- Storage Controls -->
+        <div class="card section-full"
+            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button onclick="saveData()"
+                        style="padding: 6px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">💾
+                        Save Values</button>
+                    <button onclick="loadData()"
+                        style="padding: 6px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📂
+                        Load Last Values</button>
+                    <button onclick="clearData()"
+                        style="padding: 6px 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">🗑️
+                        Clear</button>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="exportFilename" placeholder="Filename (optional)"
+                        style="padding: 5px; border-radius: 4px; border: none; font-size: 11px; width: 150px;">
+                    <button onclick="exportJSON()"
+                        style="padding: 6px 12px; background: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📥
+                        Export JSON</button>
+                    <button onclick="exportCSV()"
+                        style="padding: 6px 12px; background: #16a085; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📊
+                        Export CSV</button>
+                    <label
+                        style="padding: 6px 12px; background: #9b59b6; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📤
+                        Import JSON
+                        <input type="file" id="importFile" accept=".json" onchange="importJSON(event)"
+                            style="display: none;">
+                    </label>
+                </div>
+            </div>
+            <div id="statusMsg"
+                style="margin-top: 6px; font-size: 11px; font-style: italic; text-align: center; min-height: 14px;">
+            </div>
+        </div>
+
         <!-- ===== 1. MARKET ANALYSIS ===== -->
         <div class="card">
             <div class="title">📍 Market Analysis (Today's Range)</div>
@@ -770,8 +807,252 @@
         inputIds.forEach(id => {
             const el = $(id);
             if (el) {
-                el.addEventListener('input', calc);
-                el.addEventListener('change', calc);
+                el.addEventListener('input', () => { calc(); autoSave(); });
+                el.addEventListener('change', () => { calc(); autoSave(); });
+            }
+        });
+
+        // ===== STORAGE FUNCTIONS =====
+        const STORAGE_KEY = 'nifty_analyzer_data';
+
+        function showStatus(msg, isError = false) {
+            const el = $('statusMsg');
+            if (el) {
+                el.textContent = msg;
+                el.style.color = isError ? '#ff6b6b' : '#fff';
+                setTimeout(() => { el.textContent = ''; }, 3000);
+            }
+        }
+
+        function getCurrentData() {
+            const data = {};
+            inputIds.forEach(id => {
+                const el = $(id);
+                if (el) data[id] = el.value;
+            });
+            data._timestamp = new Date().toISOString();
+            data._date = new Date().toLocaleDateString('en-IN');
+            return data;
+        }
+
+        function autoSave() {
+            try {
+                localStorage.setItem(STORAGE_KEY + '_auto', JSON.stringify(getCurrentData()));
+            } catch (e) { /* ignore */ }
+        }
+
+        function saveData() {
+            try {
+                const data = getCurrentData();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+                // Also save in history (last 30 days)
+                const history = JSON.parse(localStorage.getItem(STORAGE_KEY + '_history') || '[]');
+                history.unshift(data);
+                if (history.length > 30) history.length = 30;
+                localStorage.setItem(STORAGE_KEY + '_history', JSON.stringify(history));
+
+                showStatus('✅ Saved successfully! (' + data._date + ')');
+            } catch (e) {
+                showStatus('❌ Save failed: ' + e.message, true);
+            }
+        }
+
+        function loadData() {
+            try {
+                // Try manual save first, then auto-save
+                let saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) saved = localStorage.getItem(STORAGE_KEY + '_auto');
+
+                if (!saved) {
+                    showStatus('⚠️ No saved data found', true);
+                    return;
+                }
+
+                const data = JSON.parse(saved);
+                inputIds.forEach(id => {
+                    const el = $(id);
+                    if (el && data[id] !== undefined) el.value = data[id];
+                });
+                calc();
+                showStatus('✅ Loaded data from ' + (data._date || 'last session'));
+            } catch (e) {
+                showStatus('❌ Load failed: ' + e.message, true);
+            }
+        }
+
+        function clearData() {
+            if (!confirm('Clear all current values and saved data?')) return;
+            inputIds.forEach(id => {
+                const el = $(id);
+                if (el) {
+                    if (id === 'B2') el.value = 23700;
+                    else if (id === 'D2') el.value = 23750;
+                    else el.value = 0;
+                }
+            });
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY + '_auto');
+            calc();
+            showStatus('✅ Cleared');
+        }
+
+        function exportJSON() {
+            const data = getCurrentData();
+
+            // Also include all calculated values
+            const calculatedIds = ['Q7', 'L_R9', 'L_R10', 'L_R11', 'L_R12', 'L_R13', 'L_R14', 'L_R15', 'L_R16', 'L_R17',
+                'J5', 'J6', 'J10', 'J11', 'J15', 'N5', 'N6', 'N10', 'N11', 'N15',
+                'J21', 'K21', 'J22', 'K22', 'J23', 'K23', 'J24', 'K24',
+                'H9', 'H13'];
+
+            const calculated = {};
+            calculatedIds.forEach(id => {
+                const el = $(id);
+                if (el) calculated[id] = el.textContent;
+            });
+
+            // AVG levels
+            const avgLevels = {};
+            for (let r = 3; r <= 19; r++) {
+                avgLevels[`AR${r}`] = $(`AR${r}`)?.textContent;
+                avgLevels[`AT${r}`] = $(`AT${r}`)?.textContent;
+                avgLevels[`G${r}`] = $(`G${r}_row`)?.textContent;
+            }
+
+            const exportData = {
+                inputs: data,
+                calculated: calculated,
+                avgLevels: avgLevels,
+                exportedAt: new Date().toISOString()
+            };
+
+            const filename = ($('exportFilename')?.value || `nifty-${new Date().toISOString().split('T')[0]}`) + '.json';
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('✅ Exported: ' + filename);
+        }
+
+        function exportCSV() {
+            const data = getCurrentData();
+            let csv = 'Section,Field,Value\n';
+
+            // Inputs
+            csv += 'Date,Date,' + (data._date || '') + '\n';
+            csv += 'Market,Yesterday High,' + (data.Q4 || 0) + '\n';
+            csv += 'Market,Yesterday Low,' + (data.Q5 || 0) + '\n';
+            csv += 'Market,Today Open,' + (data.Q13 || 0) + '\n';
+            csv += 'Market,Today Range,' + ($('Q7')?.textContent || '') + '\n';
+
+            csv += 'Matchmaking,CE Strike,' + (data.B2 || 0) + '\n';
+            csv += 'Matchmaking,PE Strike,' + (data.D2 || 0) + '\n';
+            csv += 'CE Data,Open,' + (data.B4 || 0) + '\n';
+            csv += 'CE Data,High,' + (data.B5 || 0) + '\n';
+            csv += 'CE Data,Low,' + (data.B6 || 0) + '\n';
+            csv += 'CE Data,Close,' + (data.B7 || 0) + '\n';
+            csv += 'PE Data,Open,' + (data.D4 || 0) + '\n';
+            csv += 'PE Data,High,' + (data.D5 || 0) + '\n';
+            csv += 'PE Data,Low,' + (data.D6 || 0) + '\n';
+            csv += 'PE Data,Close,' + (data.D7 || 0) + '\n';
+
+            // OTM/ITM
+            csv += '\nOTM/ITM Pair 1 (+50),Close (J3),' + (data.J3 || 0) + '\n';
+            csv += 'OTM/ITM Pair 1 (+50),Low (K3),' + (data.K3 || 0) + '\n';
+            csv += 'OTM/ITM Pair 1 (-50),Close (J4),' + (data.J4 || 0) + '\n';
+            csv += 'OTM/ITM Pair 1 (-50),Low (K4),' + (data.K4 || 0) + '\n';
+            csv += 'OTM/ITM Pair 1,ITM Close (N3),' + (data.N3 || 0) + '\n';
+            csv += 'OTM/ITM Pair 1,ITM Close (N4),' + (data.N4 || 0) + '\n';
+            csv += 'OTM/ITM Pair 1,Boundary J5,' + ($('J5')?.textContent || '') + '\n';
+            csv += 'OTM/ITM Pair 1,Target N5,' + ($('N5')?.textContent || '') + '\n';
+
+            csv += '\nOTM/ITM Pair 2 (+100),Close (J8),' + (data.J8 || 0) + '\n';
+            csv += 'OTM/ITM Pair 2 (+100),Low (K8),' + (data.K8 || 0) + '\n';
+            csv += 'OTM/ITM Pair 2 (-100),Close (J9),' + (data.J9 || 0) + '\n';
+            csv += 'OTM/ITM Pair 2 (-100),Low (K9),' + (data.K9 || 0) + '\n';
+            csv += 'OTM/ITM Pair 2,ITM Close (N8),' + (data.N8 || 0) + '\n';
+            csv += 'OTM/ITM Pair 2,ITM Close (N9),' + (data.N9 || 0) + '\n';
+            csv += 'OTM/ITM Pair 2,Boundary J10,' + ($('J10')?.textContent || '') + '\n';
+            csv += 'OTM/ITM Pair 2,Target N10,' + ($('N10')?.textContent || '') + '\n';
+
+            csv += '\nOTM/ITM Pair 3 (+150),Close (J13),' + (data.J13 || 0) + '\n';
+            csv += 'OTM/ITM Pair 3 (+150),Low (K13),' + (data.K13 || 0) + '\n';
+            csv += 'OTM/ITM Pair 3 (-150),Close (J14),' + (data.J14 || 0) + '\n';
+            csv += 'OTM/ITM Pair 3 (-150),Low (K14),' + (data.K14 || 0) + '\n';
+            csv += 'OTM/ITM Pair 3,ITM Close (N13),' + (data.N13 || 0) + '\n';
+            csv += 'OTM/ITM Pair 3,ITM Close (N14),' + (data.N14 || 0) + '\n';
+            csv += 'OTM/ITM Pair 3,Boundary J15,' + ($('J15')?.textContent || '') + '\n';
+            csv += 'OTM/ITM Pair 3,Target N15,' + ($('N15')?.textContent || '') + '\n';
+
+            // Expiry
+            csv += '\nExpiry,ATM Call,' + ($('J21')?.textContent || '') + '\n';
+            csv += 'Expiry,ATM Put,' + ($('K21')?.textContent || '') + '\n';
+            csv += 'Expiry,OTM1 Call,' + ($('J22')?.textContent || '') + '\n';
+            csv += 'Expiry,OTM1 Put,' + ($('K22')?.textContent || '') + '\n';
+            csv += 'Expiry,OTM2 Call,' + ($('J23')?.textContent || '') + '\n';
+            csv += 'Expiry,OTM2 Put,' + ($('K23')?.textContent || '') + '\n';
+            csv += 'Expiry,OTM3 Call,' + ($('J24')?.textContent || '') + '\n';
+            csv += 'Expiry,OTM3 Put,' + ($('K24')?.textContent || '') + '\n';
+
+            // AVG Levels
+            csv += '\nAVG Level,CE (AR),PE (AT),Combined (G)\n';
+            const labels = ['L1 +52.2%', 'L2 +45.675%', 'L3 +39.15%', 'L4 +32.625%', 'L5 +26.11%', 'L6 +19.575%', 'L7 +13.05%', 'L8 +6.525%', 'MIDPOINT', 'L9 -6.525%', 'L10 -13.05%', 'L11 -19.575%', 'L12 -26.11%', 'L13 -32.625%', 'L14 -39.15%', 'L15 -45.675%', 'L16 -52.2%'];
+            for (let i = 0; i < 17; i++) {
+                const r = i + 3;
+                csv += labels[i] + ',' + ($(`AR${r}`)?.textContent || '') + ',' + ($(`AT${r}`)?.textContent || '') + ',' + ($(`G${r}_row`)?.textContent || '') + '\n';
+            }
+
+            const filename = ($('exportFilename')?.value || `nifty-${new Date().toISOString().split('T')[0]}`) + '.csv';
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('✅ Exported: ' + filename);
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    const inputs = data.inputs || data; // support both formats
+
+                    inputIds.forEach(id => {
+                        const el = $(id);
+                        if (el && inputs[id] !== undefined) el.value = inputs[id];
+                    });
+                    calc();
+                    showStatus('✅ Imported: ' + file.name);
+                } catch (err) {
+                    showStatus('❌ Import failed: ' + err.message, true);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // reset for re-import
+        }
+
+        // Auto-load saved data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem(STORAGE_KEY + '_auto');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    inputIds.forEach(id => {
+                        const el = $(id);
+                        if (el && data[id] !== undefined) el.value = data[id];
+                    });
+                    calc();
+                } catch (e) { /* ignore */ }
             }
         });
 
