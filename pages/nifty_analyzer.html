@@ -1,477 +1,783 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIFTY Options Analyzer</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Trebuchet MS', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-            padding: 20px;
-            color: #333;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 10px; color: #2c3e50; font-family: 'Georgia', serif; font-size: 32px; font-weight: 700; }
-        h2, h3, h4 { font-size: 24px; font-weight: 700; }
-        h2 { font-family: 'Palatino Linotype', serif; color: #2c3e50; }
-        h3 { font-family: 'Courier New', monospace; color: #34495e; }
-        h4 { font-family: 'Lucida Console', monospace; color: #2c3e50; }
-        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 30px; font-size: 18px; font-family: 'Verdana', sans-serif; }
-        .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .section-title { font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #2c3e50; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 3px solid #3498db; font-family: 'Arial Black', sans-serif; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 16px; font-weight: 600; color: #555; margin-bottom: 5px; text-transform: uppercase; font-family: 'Century Gothic', sans-serif; letter-spacing: 0.5px; }
-        input[type="number"] { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 18px; font-weight: 500; transition: border-color 0.3s; font-family: 'Consolas', monospace; }
-        input[type="number"]:focus { outline: none; border-color: #3498db; background-color: #ecf0f1; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        table { width: 100%; border-collapse: collapse; font-size: 18px; font-family: 'Calibri', sans-serif; }
-        th, td { padding: 16px 12px; text-align: center; border: 1px solid #ecf0f1; }
-        th { background: #34495e; color: white; font-weight: 700; text-transform: uppercase; font-size: 16px; letter-spacing: 0.5px; font-family: 'Impact', sans-serif; }
-        td { font-weight: 500; font-family: 'Garamond', serif; font-size: 16px; }
-        tr:hover { background: #f8f9fa; }
-        .yes { background: #d4edda; color: #155724; font-weight: 700; }
-        .no { background: #f8d7da; color: #721c24; font-weight: 700; }
-        .info-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
-        .info-card { background: linear-gradient(135deg, #f5f7fa 0%, #ecf0f1 100%); padding: 15px; border-radius: 10px; text-align: center; border-left: 4px solid #3498db; }
-        .info-label { font-size: 14px; color: #7f8c8d; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; font-family: 'Comic Sans MS', cursive; letter-spacing: 0.5px; }
-        .info-value { font-size: 32px; font-weight: 700; color: #2c3e50; font-family: 'Courier New', monospace; }
-        .level-stack { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 30px 0; font-size: 16px; font-family: 'Courier New', monospace; font-weight: 700; }
-        .level-box { padding: 12px 24px; margin: 2px 0; min-width: 150px; text-align: center; font-size: 18px; }
-        .otm-itm-table { width: 100%; margin-top: 20px; }
-        .otm-itm-table th { background: #34495e; }
-        .otm-itm-table td { padding: 14px 10px; font-size: 16px; }
-        .read-only { background: #ecf0f1 !important; color: #555 !important; font-weight: 600; }
-        .user-input { background: #fffacd !important; }
-        .boundary { background: #90EE90 !important; color: #155724 !important; font-weight: 700; }
-        .target { background: #FFB6C1 !important; color: #8B0000 !important; font-weight: 700; }
-        .mid-point { background: #ffd700 !important; color: #333 !important; font-weight: 700; }
-        @media (max-width: 768px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } .info-section { grid-template-columns: repeat(2, 1fr); } }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 6px;
+            font-size: 11px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        h1 {
+            grid-column: 1/-1;
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+
+        .card {
+            background: white;
+            border-radius: 6px;
+            padding: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-full {
+            grid-column: 1/-1;
+        }
+
+        .title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            padding-bottom: 3px;
+            border-bottom: 2px solid #3498db;
+            text-transform: uppercase;
+        }
+
+        .g2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .g3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .g4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        label {
+            font-size: 9px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 3px 4px;
+            border: 1px solid #bdc3c7;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            margin: 6px 0;
+        }
+
+        th {
+            background: #34495e;
+            color: white;
+            padding: 4px 2px;
+            font-size: 9px;
+        }
+
+        td {
+            padding: 4px 3px;
+            border: 1px solid #ecf0f1;
+            text-align: center;
+        }
+
+        .yes {
+            background: #d4edda !important;
+            font-weight: 700;
+        }
+
+        .no {
+            background: #f8d7da !important;
+        }
+
+        .ro {
+            background: #ecf0f1;
+            font-weight: 600;
+        }
+
+        .ui {
+            background: #fffacd !important;
+        }
+
+        .bnd {
+            background: #90EE90 !important;
+            font-weight: 700;
+        }
+
+        .tgt {
+            background: #FFB6C1 !important;
+            font-weight: 700;
+        }
+
+        .mid {
+            background: #ffd700 !important;
+            font-weight: 700;
+        }
+
+        .gold {
+            background: #ffd700;
+            font-weight: 700;
+        }
+
+        .green {
+            background: #90EE90;
+            font-weight: 700;
+        }
+
+        .blue-mid {
+            background: #0099ff;
+            color: white;
+            font-weight: 700;
+        }
+
+        .small-input {
+            width: 100%;
+            padding: 2px;
+            font-size: 9px;
+        }
+
+        .info {
+            background: #f5f7fa;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+            border-left: 2px solid #3498db;
+        }
+
+        .info-l {
+            font-size: 8px;
+            color: #7f8c8d;
+            margin-bottom: 2px;
+        }
+
+        .info-v {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🎯 NIFTY Options Analyzer</h1>
-        <p class="subtitle">Complete Trading Analysis Tool</p>
 
-        <!-- SECTION 1: MARKET ANALYSIS -->
+        <!-- ===== 1. MARKET ANALYSIS ===== -->
         <div class="card">
-            <div class="section-title">📍 Market Analysis & Derived Levels</div>
-            <div class="grid-3">
-                <div class="input-group"><label>Yesterday High</label><input type="number" id="yesterdayHigh" value="0" step="0.01"></div>
-                <div class="input-group"><label>Yesterday Low</label><input type="number" id="yesterdayLow" value="0" step="0.01"></div>
-                <div class="input-group"><label>Today's Open</label><input type="number" id="todayOpen" value="0" step="0.01"></div>
+            <div class="title">📍 Market Analysis (Today's Range)</div>
+            <div class="g3">
+                <div><label>Yest. High (Q4)</label><input type="number" id="Q4" value="0" step="0.01"></div>
+                <div><label>Yest. Low (Q5)</label><input type="number" id="Q5" value="0" step="0.01"></div>
+                <div><label>Today's Open (Q13)</label><input type="number" id="Q13" value="0" step="0.01"></div>
             </div>
-            <div class="info-section">
-                <div class="info-card"><div class="info-label">Daily Range (26.11%)</div><div class="info-value" id="dailyRange">-</div></div>
-                <div class="info-card"><div class="info-label">Range Points</div><div class="info-value" id="rangePoints">-</div></div>
-                <div class="info-card"><div class="info-label">Midpoint</div><div class="info-value" id="midpointValue">-</div></div>
-                <div class="info-card" style="border-left-color: #27ae60;"><div class="info-label">-</div><div class="info-value">-</div></div>
-            </div>
-            <div class="level-stack" style="margin-top: 30px;">
-                <div class="level-box" style="background: #ff0000; color: white;">L4: <span id="ml4Display">-</span></div>
-                <div class="level-box" style="background: #ff3333; color: white;">L3: <span id="ml3Display">-</span></div>
-                <div class="level-box" style="background: #ff6666; color: white;">L2: <span id="ml2Display">-</span></div>
-                <div class="level-box" style="background: #0066ff; color: white;">L1: <span id="ml1Display">-</span></div>
-                <div class="level-box" style="background: #000000; color: white; font-size: 18px;">Today's Open: <span id="openDisplay">-</span></div>
-                <div class="level-box" style="background: #0066ff; color: white;">S1: <span id="ms1Display">-</span></div>
-                <div class="level-box" style="background: #66ff66; color: #155724;">S2: <span id="ms2Display">-</span></div>
-                <div class="level-box" style="background: #33ff33; color: #155724;">S3: <span id="ms3Display">-</span></div>
-                <div class="level-box" style="background: #00ff00; color: #155724;">S4: <span id="ms4Display">-</span></div>
-            </div>
-        </div>
-
-        <!-- SECTION 2: MATCHMAKING -->
-        <div class="card">
-            <div class="section-title">📊 Matchmaking Analysis</div>
-            <div class="grid-2">
-                <div class="input-group"><label>Strike Price 1 (CE)</label><input type="number" id="strikePrice1" value="23400" step="50"></div>
-                <div class="input-group"><label>Strike Price 2 (PE)</label><input type="number" id="strikePrice2" value="23400" step="50"></div>
-            </div>
-            <div style="margin-top: 20px;"><h3 style="color: #27ae60; margin-bottom: 10px;">📈 CALL (CE) Data</h3>
-                <div class="grid-4">
-                    <div class="input-group"><label>Open</label><input type="number" id="ceOpen" value="0" step="0.01"></div>
-                    <div class="input-group"><label>High</label><input type="number" id="ceHigh" value="0" step="0.01"></div>
-                    <div class="input-group"><label>Low</label><input type="number" id="ceLow" value="0" step="0.01"></div>
-                    <div class="input-group"><label>Close</label><input type="number" id="ceClose" value="0" step="0.01"></div>
+            <div class="g4" style="margin-top: 6px;">
+                <div class="info">
+                    <div class="info-l">Today's Range (Q7)</div>
+                    <div class="info-v" id="Q7">-</div>
+                </div>
+                <div class="info">
+                    <div class="info-l">R9 (Top)</div>
+                    <div class="info-v" id="R9">-</div>
+                </div>
+                <div class="info">
+                    <div class="info-l">R13 (Open)</div>
+                    <div class="info-v" id="R13">-</div>
+                </div>
+                <div class="info">
+                    <div class="info-l">R17 (Bottom)</div>
+                    <div class="info-v" id="R17">-</div>
                 </div>
             </div>
-            <div style="margin-top: 20px;"><h3 style="color: #e74c3c; margin-bottom: 10px;">📉 PUT (PE) Data</h3>
-                <div class="grid-4">
-                    <div class="input-group"><label>Open</label><input type="number" id="peOpen" value="0" step="0.01"></div>
-                    <div class="input-group"><label>High</label><input type="number" id="peHigh" value="0" step="0.01"></div>
-                    <div class="input-group"><label>Low</label><input type="number" id="peLow" value="0" step="0.01"></div>
-                    <div class="input-group"><label>Close</label><input type="number" id="peClose" value="0" step="0.01"></div>
-                </div>
-            </div>
-            <div style="margin-top: 20px; overflow-x: auto;">
-                <table>
-                    <thead><tr><th>Parameter</th><th>CE Value</th><th>CE Signal</th><th></th><th>PE Value</th><th>PE Signal</th></tr></thead>
-                    <tbody>
-                        <tr><td>OPEN</td><td id="ceOpenDisplay">-</td><td id="ceOpenSignal">-</td><td></td><td id="peOpenDisplay">-</td><td id="peOpenSignal">-</td></tr>
-                        <tr><td>HIGH</td><td id="ceHighDisplay">-</td><td id="ceHighSignal">-</td><td></td><td id="peHighDisplay">-</td><td id="peHighSignal">-</td></tr>
-                        <tr><td>LOW</td><td id="ceLowDisplay">-</td><td id="ceLowSignal">-</td><td></td><td id="peLowDisplay">-</td><td id="peLowSignal">-</td></tr>
-                        <tr><td>CLOSE</td><td id="ceCloseDisplay">-</td><td id="ceCloseSignal">-</td><td></td><td id="peCloseDisplay">-</td><td id="peCloseSignal">-</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="info-section">
-                <div class="info-card"><div class="info-label">CE Range</div><div class="info-value" id="ceRange">-</div></div>
-                <div class="info-card"><div class="info-label">PE Range</div><div class="info-value" id="peRange">-</div></div>
-                <div class="info-card" style="border-left-color: #27ae60;"><div class="info-label">Yes Count (CE)</div><div class="info-value" id="yesCountCE">0</div></div>
-                <div class="info-card" style="border-left-color: #e74c3c;"><div class="info-label">Yes Count (PE)</div><div class="info-value" id="yesCountPE">0</div></div>
-            </div>
-        </div>
-
-        <!-- SECTION 3: OTM/ITM ANALYSIS -->
-        <div class="card">
-            <div class="section-title">🎯 OTM & ITM Analysis</div>
-            
-            <!-- CE and PE Strike Inputs -->
-            <div class="grid-2">
-                <div class="input-group"><label>CE Strike Price (for OTM)</label><input type="number" id="ceStrikeOTM" value="23700" step="50"></div>
-                <div class="input-group"><label>PE Strike Price (for ITM)</label><input type="number" id="peStrikeITM" value="23750" step="50"></div>
-            </div>
-
-            <table class="otm-itm-table">
-                <thead>
-                    <tr style="background: #34495e;">
-                        <th colspan="3" style="text-align: center; color: white;">OTM (CE Strike)</th>
-                        <th style="width: 2%;"></th>
-                        <th colspan="3" style="text-align: center; color: white;">ITM (PE Strike)</th>
-                    </tr>
-                    <tr style="background: #34495e;">
-                        <th>Strike</th><th style="color: #ff6b6b;">Close</th><th style="color: #ff6b6b;">Low</th>
-                        <th></th>
-                        <th>Strike</th><th style="color: #ff6b6b;">Close</th><th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Pair 1: OTM +50 / ITM -50 -->
-                    <tr style="background: #fff9e6;">
-                        <td id="otmStrike1CE" class="read-only">-</td>
-                        <td><input type="number" id="otmClose1CE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td><input type="number" id="otmLow1CE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td></td>
-                        <td id="itmStrike1PE" class="read-only">-</td>
-                        <td><input type="number" id="itmClose1PE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td class="boundary">BOUNDARY</td><td id="otmBoundary1CE" class="boundary">-</td><td></td>
-                        <td></td>
-                        <td class="target">TARGET</td><td id="itmTarget1PE" class="target">-</td><td></td>
-                    </tr>
-                    <tr>
-                        <td class="mid-point">MID POINT</td><td id="otmMid1CE" class="mid-point">-</td><td></td>
-                        <td></td>
-                        <td class="mid-point">MID POINT</td><td id="itmMid1PE" class="mid-point">-</td><td></td>
-                    </tr>
-
-                    <!-- Pair 2: OTM +100 / ITM -100 -->
-                    <tr style="background: #fff9e6;">
-                        <td id="otmStrike2CE" class="read-only">-</td>
-                        <td><input type="number" id="otmClose2CE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td><input type="number" id="otmLow2CE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td></td>
-                        <td id="itmStrike2PE" class="read-only">-</td>
-                        <td><input type="number" id="itmClose2PE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td class="boundary">BOUNDARY</td><td id="otmBoundary2CE" class="boundary">-</td><td></td>
-                        <td></td>
-                        <td class="target">TARGET</td><td id="itmTarget2PE" class="target">-</td><td></td>
-                    </tr>
-                    <tr>
-                        <td class="mid-point">MID POINT</td><td id="otmMid2CE" class="mid-point">-</td><td></td>
-                        <td></td>
-                        <td class="mid-point">MID POINT</td><td id="itmMid2PE" class="mid-point">-</td><td></td>
-                    </tr>
-
-                    <!-- Pair 3: OTM +150 / ITM -150 -->
-                    <tr style="background: #fff9e6;">
-                        <td id="otmStrike3CE" class="read-only">-</td>
-                        <td><input type="number" id="otmClose3CE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td><input type="number" id="otmLow3CE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td></td>
-                        <td id="itmStrike3PE" class="read-only">-</td>
-                        <td><input type="number" id="itmClose3PE" value="0" step="0.01" class="user-input" style="width: 90px;"></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td class="boundary">BOUNDARY</td><td id="otmBoundary3CE" class="boundary">-</td><td></td>
-                        <td></td>
-                        <td class="target">TARGET</td><td id="itmTarget3PE" class="target">-</td><td></td>
-                    </tr>
-                    <tr>
-                        <td class="mid-point">MID POINT</td><td id="otmMid3CE" class="mid-point">-</td><td></td>
-                        <td></td>
-                        <td class="mid-point">MID POINT</td><td id="itmMid3PE" class="mid-point">-</td><td></td>
-                    </tr>
-                </tbody>
+            <table style="margin-top: 6px;">
+                <tr>
+                    <th>Level</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td class="gold">R9 (+4 ranges)</td>
+                    <td id="L_R9">-</td>
+                </tr>
+                <tr>
+                    <td class="gold">R10 (+3 ranges)</td>
+                    <td id="L_R10">-</td>
+                </tr>
+                <tr>
+                    <td class="gold">R11 (+2 ranges)</td>
+                    <td id="L_R11">-</td>
+                </tr>
+                <tr>
+                    <td class="gold">R12 (+1 range)</td>
+                    <td id="L_R12">-</td>
+                </tr>
+                <tr>
+                    <td class="blue-mid">R13 (Today's Open)</td>
+                    <td id="L_R13">-</td>
+                </tr>
+                <tr>
+                    <td class="green">R14 (-1 range)</td>
+                    <td id="L_R14">-</td>
+                </tr>
+                <tr>
+                    <td class="green">R15 (-2 ranges)</td>
+                    <td id="L_R15">-</td>
+                </tr>
+                <tr>
+                    <td class="green">R16 (-3 ranges)</td>
+                    <td id="L_R16">-</td>
+                </tr>
+                <tr>
+                    <td class="green">R17 (-4 ranges)</td>
+                    <td id="L_R17">-</td>
+                </tr>
             </table>
         </div>
 
-        <!-- SECTION 4: EXPIRY STRATEGY -->
+        <!-- ===== 2. MATCHMAKING ===== -->
         <div class="card">
-            <div class="section-title">📈 Expiry Strategy (Greeks)</div>
-            <table style="margin-top: 20px;">
-                <thead>
-                    <tr style="background: #0099ff;">
-                        <th style="color: white;">EXPIRY</th>
-                        <th style="color: white;">CALL</th>
-                        <th style="color: white;">PUT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="font-weight: 700; background: #fffacd;">ATM</td>
-                        <td id="atmCall" class="read-only">-</td>
-                        <td id="atmPut" class="read-only">-</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; background: #fffacd;">OTM 1</td>
-                        <td id="otm1Call" class="read-only">-</td>
-                        <td id="otm1Put" class="read-only">-</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; background: #fffacd;">OTM 2</td>
-                        <td id="otm2Call" class="read-only">-</td>
-                        <td id="otm2Put" class="read-only">-</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 700; background: #fffacd;">OTM 3</td>
-                        <td id="otm3Call" class="read-only">-</td>
-                        <td id="otm3Put" class="read-only">-</td>
-                    </tr>
-                </tbody>
+            <div class="title">📊 Matchmaking Analysis</div>
+            <div class="g2">
+                <div><label>CE Strike (B2)</label><input type="number" id="B2" value="23700" step="50"></div>
+                <div><label>PE Strike (D2)</label><input type="number" id="D2" value="23750" step="50"></div>
+            </div>
+            <h3 style="font-size: 10px; margin-top: 6px; color: #27ae60;">CE Data (B4-B7)</h3>
+            <div class="g4">
+                <div><label>Open</label><input type="number" id="B4" value="0" step="0.01"></div>
+                <div><label>High</label><input type="number" id="B5" value="0" step="0.01"></div>
+                <div><label>Low</label><input type="number" id="B6" value="0" step="0.01"></div>
+                <div><label>Close</label><input type="number" id="B7" value="0" step="0.01"></div>
+            </div>
+            <h3 style="font-size: 10px; margin-top: 6px; color: #e74c3c;">PE Data (D4-D7)</h3>
+            <div class="g4">
+                <div><label>Open</label><input type="number" id="D4" value="0" step="0.01"></div>
+                <div><label>High</label><input type="number" id="D5" value="0" step="0.01"></div>
+                <div><label>Low</label><input type="number" id="D6" value="0" step="0.01"></div>
+                <div><label>Close</label><input type="number" id="D7" value="0" step="0.01"></div>
+            </div>
+            <table>
+                <tr>
+                    <th></th>
+                    <th>CE</th>
+                    <th>Sig (C)</th>
+                    <th></th>
+                    <th>PE</th>
+                    <th>Sig (E)</th>
+                </tr>
+                <tr>
+                    <td>OPEN</td>
+                    <td id="d_B4">-</td>
+                    <td id="C4" class="no">No</td>
+                    <td></td>
+                    <td id="d_D4">-</td>
+                    <td id="E4" class="no">No</td>
+                </tr>
+                <tr>
+                    <td>HIGH</td>
+                    <td id="d_B5">-</td>
+                    <td id="C5" class="no">No</td>
+                    <td></td>
+                    <td id="d_D5">-</td>
+                    <td id="E5" class="no">No</td>
+                </tr>
+                <tr>
+                    <td>LOW</td>
+                    <td id="d_B6">-</td>
+                    <td id="C6" class="no">No</td>
+                    <td></td>
+                    <td id="d_D6">-</td>
+                    <td id="E6" class="no">No</td>
+                </tr>
+                <tr>
+                    <td>CLOSE</td>
+                    <td id="d_B7">-</td>
+                    <td id="C7" class="no">No</td>
+                    <td></td>
+                    <td id="d_D7">-</td>
+                    <td id="E7" class="no">No</td>
+                </tr>
             </table>
         </div>
 
-        <!-- SECTION 5: AVG DERIVED LEVELS (16 LEVELS) -->
+        <!-- ===== 3. OTM/ITM ANALYSIS (with AVG column H) ===== -->
+        <div class="card section-full">
+            <div class="title">🎯 OTM & ITM Analysis (with AVG MID POINT)</div>
+            <table style="font-size: 10px;">
+                <tr style="background: #34495e;">
+                    <th>AVG</th>
+                    <th>H</th>
+                    <th>OTM Strike (I)</th>
+                    <th>Close (J)</th>
+                    <th>Low (K)</th>
+                    <th>L</th>
+                    <th>ITM Strike (M)</th>
+                    <th>Close (N)</th>
+                </tr>
+                <!-- Row 3 -->
+                <tr>
+                    <td class="gold" id="G3_row">-</td>
+                    <td>MID POINT</td>
+                    <td id="I3" class="ro">-</td>
+                    <td><input type="number" id="J3" class="ui small-input" value="0" step="0.01"></td>
+                    <td><input type="number" id="K3" class="ui small-input" value="0" step="0.01"></td>
+                    <td></td>
+                    <td id="M3" class="ro">-</td>
+                    <td><input type="number" id="N3" class="ui small-input" value="0" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td id="G4_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td id="I4" class="ro">-</td>
+                    <td><input type="number" id="J4" class="ui small-input" value="0" step="0.01"></td>
+                    <td><input type="number" id="K4" class="ui small-input" value="0" step="0.01"></td>
+                    <td></td>
+                    <td id="M4" class="ro">-</td>
+                    <td><input type="number" id="N4" class="ui small-input" value="0" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td class="gold" id="G5_row">-</td>
+                    <td></td>
+                    <td>BOUNDRY</td>
+                    <td id="J5" class="bnd">-</td>
+                    <td></td>
+                    <td>TARGET</td>
+                    <td></td>
+                    <td id="N5" class="tgt">-</td>
+                </tr>
+                <tr>
+                    <td id="G6_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td></td>
+                    <td id="J6" class="mid">-</td>
+                    <td></td>
+                    <td>MID POINT</td>
+                    <td></td>
+                    <td id="N6" class="mid">-</td>
+                </tr>
+                <tr>
+                    <td class="gold" id="G7_row">-</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- Row 8 -->
+                <tr>
+                    <td id="G8_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td id="I8" class="ro">-</td>
+                    <td><input type="number" id="J8" class="ui small-input" value="0" step="0.01"></td>
+                    <td><input type="number" id="K8" class="ui small-input" value="0" step="0.01"></td>
+                    <td></td>
+                    <td id="M8" class="ro">-</td>
+                    <td><input type="number" id="N8" class="ui small-input" value="0" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td class="gold" id="G9_row">-</td>
+                    <td id="H9" class="mid">-</td>
+                    <td id="I9" class="ro">-</td>
+                    <td><input type="number" id="J9" class="ui small-input" value="0" step="0.01"></td>
+                    <td><input type="number" id="K9" class="ui small-input" value="0" step="0.01"></td>
+                    <td></td>
+                    <td id="M9" class="ro">-</td>
+                    <td><input type="number" id="N9" class="ui small-input" value="0" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td id="G10_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td>BOUNDRY</td>
+                    <td id="J10" class="bnd">-</td>
+                    <td></td>
+                    <td>TARGET</td>
+                    <td></td>
+                    <td id="N10" class="tgt">-</td>
+                </tr>
+                <tr>
+                    <td class="blue-mid" id="G11_row">-</td>
+                    <td></td>
+                    <td></td>
+                    <td id="J11" class="mid">-</td>
+                    <td></td>
+                    <td>MID POINT</td>
+                    <td></td>
+                    <td id="N11" class="mid">-</td>
+                </tr>
+                <tr>
+                    <td id="G12_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <!-- Row 13 -->
+                <tr>
+                    <td class="green" id="G13_row">-</td>
+                    <td id="H13" class="mid">-</td>
+                    <td id="I13" class="ro">-</td>
+                    <td><input type="number" id="J13" class="ui small-input" value="0" step="0.01"></td>
+                    <td><input type="number" id="K13" class="ui small-input" value="0" step="0.01"></td>
+                    <td></td>
+                    <td id="M13" class="ro">-</td>
+                    <td><input type="number" id="N13" class="ui small-input" value="0" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td id="G14_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td id="I14" class="ro">-</td>
+                    <td><input type="number" id="J14" class="ui small-input" value="0" step="0.01"></td>
+                    <td><input type="number" id="K14" class="ui small-input" value="0" step="0.01"></td>
+                    <td></td>
+                    <td id="M14" class="ro">-</td>
+                    <td><input type="number" id="N14" class="ui small-input" value="0" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td class="green" id="G15_row">-</td>
+                    <td></td>
+                    <td>BOUNDRY</td>
+                    <td id="J15" class="bnd">-</td>
+                    <td></td>
+                    <td>TARGET</td>
+                    <td></td>
+                    <td id="N15" class="tgt">-</td>
+                </tr>
+                <tr>
+                    <td id="G16_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="green" id="G17_row">-</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td id="G18_row" style="background:#fff">-</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="green" id="G19_row">-</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- ===== 4. EXPIRY STRATEGY ===== -->
         <div class="card">
-            <div class="section-title">📈 AVG Derived Levels (16 Levels)</div>
-            <div class="grid-3">
-                <div class="input-group"><label>CE Close</label><input type="number" id="avgCeClose" value="0" step="0.01" readonly style="background: #ecf0f1;"></div>
-                <div class="input-group"><label>PE Close</label><input type="number" id="avgPeClose" value="0" step="0.01" readonly style="background: #ecf0f1;"></div>
-                <div class="input-group"><label>Midpoint</label><input type="number" id="avgMidpoint" value="0" step="0.01" readonly style="background: #fef3c7; font-weight: 700;"></div>
-            </div>
-            <div style="margin-top: 30px; overflow-x: auto;">
-                <table>
-                    <thead><tr><th style="width: 20%;">CE</th><th style="width: 60%;">Level</th><th style="width: 20%;">PE</th></tr></thead>
-                    <tbody>
-                        <tr><td style="background: #ffd700;" id="avgL1">-</td><td>L1 (+52.2%)</td><td style="background: #ffd700;" id="avgL1PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL2">-</td><td>L2 (+45.675%)</td><td style="background: #ffffff;" id="avgL2PE">-</td></tr>
-                        <tr><td style="background: #ffd700;" id="avgL3">-</td><td>L3 (+39.15%)</td><td style="background: #ffd700;" id="avgL3PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL4">-</td><td>L4 (+32.625%)</td><td style="background: #ffffff;" id="avgL4PE">-</td></tr>
-                        <tr><td style="background: #ffd700;" id="avgL5">-</td><td>L5 (+26.11%)</td><td style="background: #ffd700;" id="avgL5PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL6">-</td><td>L6 (+19.575%)</td><td style="background: #ffffff;" id="avgL6PE">-</td></tr>
-                        <tr><td style="background: #ffd700;" id="avgL7">-</td><td>L7 (+13.05%)</td><td style="background: #ffd700;" id="avgL7PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL8">-</td><td>L8 (+6.525%)</td><td style="background: #ffffff;" id="avgL8PE">-</td></tr>
-                        <tr><td style="background: #0099ff; color: white; font-weight: 700;" id="avgL9">-</td><td style="background: #0099ff; color: white; font-weight: 700;">MIDPOINT (0%)</td><td style="background: #0099ff; color: white; font-weight: 700;" id="avgL9PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL10">-</td><td>L10 (-6.525%)</td><td style="background: #ffffff;" id="avgL10PE">-</td></tr>
-                        <tr><td style="background: #90EE90;" id="avgL11">-</td><td>L11 (-13.05%)</td><td style="background: #90EE90;" id="avgL11PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL12">-</td><td>L12 (-19.575%)</td><td style="background: #ffffff;" id="avgL12PE">-</td></tr>
-                        <tr><td style="background: #90EE90;" id="avgL13">-</td><td>L13 (-26.11%)</td><td style="background: #90EE90;" id="avgL13PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL14">-</td><td>L14 (-32.625%)</td><td style="background: #ffffff;" id="avgL14PE">-</td></tr>
-                        <tr><td style="background: #90EE90;" id="avgL15">-</td><td>L15 (-39.15%)</td><td style="background: #90EE90;" id="avgL15PE">-</td></tr>
-                        <tr><td style="background: #ffffff;" id="avgL16">-</td><td>L16 (-45.675%)</td><td style="background: #ffffff;" id="avgL16PE">-</td></tr>
-                        <tr><td style="background: #90EE90;" id="avgL17">-</td><td>L17 (-52.2%)</td><td style="background: #90EE90;" id="avgL17PE">-</td></tr>
-                    </tbody>
+            <div class="title">📈 Expiry Strategy (26.11%)</div>
+            <table>
+                <tr style="background:#0099ff;">
+                    <th style="color:white;">EXPIRY</th>
+                    <th style="color:white;">CALL (J)</th>
+                    <th style="color:white;">PUT (K)</th>
+                </tr>
+                <tr>
+                    <td style="background:#fffacd;font-weight:700;">ATM</td>
+                    <td id="J21" class="ro">-</td>
+                    <td id="K21" class="ro">-</td>
+                </tr>
+                <tr>
+                    <td style="background:#fffacd;font-weight:700;">OTM 1</td>
+                    <td id="J22" class="ro">-</td>
+                    <td id="K22" class="ro">-</td>
+                </tr>
+                <tr>
+                    <td style="background:#fffacd;font-weight:700;">OTM 2</td>
+                    <td id="J23" class="ro">-</td>
+                    <td id="K23" class="ro">-</td>
+                </tr>
+                <tr>
+                    <td style="background:#fffacd;font-weight:700;">OTM 3</td>
+                    <td id="J24" class="ro">-</td>
+                    <td id="K24" class="ro">-</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- ===== 5. AVG DERIVED LEVELS (Separate CE/PE) ===== -->
+        <div class="card">
+            <div class="title">📈 AVG Derived Levels - CE (AR) & PE (AT) Separate</div>
+            <div style="font-size: 9px; margin-bottom: 4px; color: #666;">AR11 = B7 (CE Close), AT11 = D7 (PE Close),
+                G11 = (AR11+AT11)/2</div>
+            <div style="overflow-y: auto; max-height: 280px; border: 1px solid #ddd;">
+                <table style="font-size: 9px;">
+                    <tr>
+                        <th>CE (AR)</th>
+                        <th>Level</th>
+                        <th>PE (AT)</th>
+                    </tr>
+                    <tr>
+                        <td id="AR3" class="gold">-</td>
+                        <td>L1 +52.2%</td>
+                        <td id="AT3" class="gold">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR4" style="background:#fff">-</td>
+                        <td>L2 +45.675%</td>
+                        <td id="AT4" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR5" class="gold">-</td>
+                        <td>L3 +39.15%</td>
+                        <td id="AT5" class="gold">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR6" style="background:#fff">-</td>
+                        <td>L4 +32.625%</td>
+                        <td id="AT6" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR7" class="gold">-</td>
+                        <td>L5 +26.11%</td>
+                        <td id="AT7" class="gold">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR8" style="background:#fff">-</td>
+                        <td>L6 +19.575%</td>
+                        <td id="AT8" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR9" class="gold">-</td>
+                        <td>L7 +13.05%</td>
+                        <td id="AT9" class="gold">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR10" style="background:#fff">-</td>
+                        <td>L8 +6.525%</td>
+                        <td id="AT10" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR11" class="blue-mid">-</td>
+                        <td class="blue-mid">MIDPOINT 0%</td>
+                        <td id="AT11" class="blue-mid">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR12" style="background:#fff">-</td>
+                        <td>L9 -6.525%</td>
+                        <td id="AT12" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR13" class="green">-</td>
+                        <td>L10 -13.05%</td>
+                        <td id="AT13" class="green">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR14" style="background:#fff">-</td>
+                        <td>L11 -19.575%</td>
+                        <td id="AT14" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR15" class="green">-</td>
+                        <td>L12 -26.11%</td>
+                        <td id="AT15" class="green">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR16" style="background:#fff">-</td>
+                        <td>L13 -32.625%</td>
+                        <td id="AT16" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR17" class="green">-</td>
+                        <td>L14 -39.15%</td>
+                        <td id="AT17" class="green">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR18" style="background:#fff">-</td>
+                        <td>L15 -45.675%</td>
+                        <td id="AT18" style="background:#fff">-</td>
+                    </tr>
+                    <tr>
+                        <td id="AR19" class="green">-</td>
+                        <td>L16 -52.2%</td>
+                        <td id="AT19" class="green">-</td>
+                    </tr>
                 </table>
             </div>
         </div>
+
     </div>
 
     <script>
-        // Get all inputs
-        const ceOpen = document.getElementById('ceOpen');
-        const ceHigh = document.getElementById('ceHigh');
-        const ceLow = document.getElementById('ceLow');
-        const ceClose = document.getElementById('ceClose');
-        const peOpen = document.getElementById('peOpen');
-        const peHigh = document.getElementById('peHigh');
-        const peLow = document.getElementById('peLow');
-        const peClose = document.getElementById('peClose');
-        const strikePrice1 = document.getElementById('strikePrice1');
-        const strikePrice2 = document.getElementById('strikePrice2');
-        const yesterdayHigh = document.getElementById('yesterdayHigh');
-        const yesterdayLow = document.getElementById('yesterdayLow');
-        const todayOpen = document.getElementById('todayOpen');
+        // Get all elements safely
+        function $(id) { return document.getElementById(id); }
+        function val(id) { return parseFloat($(id)?.value) || 0; }
+        function set(id, v) { const el = $(id); if (el) el.textContent = (typeof v === 'number' ? v.toFixed(2) : v); }
+        function setSig(id, v) { const el = $(id); if (el) { el.textContent = v; el.className = v === 'Yes' ? 'yes' : 'no'; } }
+        function isWithin(v, a, b) { return v >= Math.min(a, b) && v <= Math.max(a, b); }
 
-        // Matchmaking helper
-        function isWithinRange(value, high, low) {
-            const min = Math.min(high, low);
-            const max = Math.max(high, low);
-            return value >= min && value <= max;
-        }
+        // All input IDs
+        const inputIds = ['Q4', 'Q5', 'Q13', 'B2', 'D2', 'B4', 'B5', 'B6', 'B7', 'D4', 'D5', 'D6', 'D7',
+            'J3', 'K3', 'J4', 'K4', 'J8', 'K8', 'J9', 'K9', 'J13', 'K13', 'J14', 'K14',
+            'N3', 'N4', 'N8', 'N9', 'N13', 'N14'];
 
-        // Update all calculations
-        function updateAll() {
-            const ceO = parseFloat(ceOpen.value) || 0;
-            const ceH = parseFloat(ceHigh.value) || 0;
-            const ceL = parseFloat(ceLow.value) || 0;
-            const ceC = parseFloat(ceClose.value) || 0;
-            const peO = parseFloat(peOpen.value) || 0;
-            const peH = parseFloat(peHigh.value) || 0;
-            const peL = parseFloat(peLow.value) || 0;
-            const peC = parseFloat(peClose.value) || 0;
-            const s1 = parseFloat(strikePrice1.value) || 0;
-            const s2 = parseFloat(strikePrice2.value) || 0;
+        function calc() {
+            // ===== Read all inputs =====
+            const Q4 = val('Q4'), Q5 = val('Q5'), Q13 = val('Q13');
+            const B2 = val('B2'), D2 = val('D2');
+            const B4 = val('B4'), B5 = val('B5'), B6 = val('B6'), B7 = val('B7');
+            const D4 = val('D4'), D5 = val('D5'), D6 = val('D6'), D7 = val('D7');
+            const J3 = val('J3'), K3 = val('K3'), J4 = val('J4'), K4 = val('K4');
+            const J8 = val('J8'), K8 = val('K8'), J9 = val('J9'), K9 = val('K9');
+            const J13 = val('J13'), K13 = val('K13'), J14 = val('J14'), K14 = val('K14');
+            const N3 = val('N3'), N4 = val('N4'), N8 = val('N8'), N9 = val('N9'), N13 = val('N13'), N14 = val('N14');
 
-            // Display CE/PE values
-            document.getElementById('ceOpenDisplay').textContent = ceO.toFixed(2);
-            document.getElementById('ceHighDisplay').textContent = ceH.toFixed(2);
-            document.getElementById('ceLowDisplay').textContent = ceL.toFixed(2);
-            document.getElementById('ceCloseDisplay').textContent = ceC.toFixed(2);
-            document.getElementById('peOpenDisplay').textContent = peO.toFixed(2);
-            document.getElementById('peHighDisplay').textContent = peH.toFixed(2);
-            document.getElementById('peLowDisplay').textContent = peL.toFixed(2);
-            document.getElementById('peCloseDisplay').textContent = peC.toFixed(2);
+            // ===== 1. MARKET ANALYSIS =====
+            // Q7 = (Q4-Q5)*26.11%
+            const Q7 = (Q4 - Q5) * 0.2611;
+            set('Q7', Q7);
 
-            // Matchmaking signals
-            const ceOpenSignal = isWithinRange(ceO, peH, peL) ? 'Yes' : 'No';
-            const ceHighSignal = isWithinRange(ceH, peH, peL) ? 'Yes' : 'No';
-            const ceLowSignal = isWithinRange(ceL, peH, peL) ? 'Yes' : 'No';
-            const ceCloseSignal = isWithinRange(ceC, peH, peL) ? 'Yes' : 'No';
-            const peOpenSignal = isWithinRange(peO, ceH, ceL) ? 'Yes' : 'No';
-            const peHighSignal = isWithinRange(peH, ceH, ceL) ? 'Yes' : 'No';
-            const peLowSignal = isWithinRange(peL, ceH, ceL) ? 'Yes' : 'No';
-            const peCloseSignal = isWithinRange(peC, ceH, ceL) ? 'Yes' : 'No';
+            // R13 = Q13 (Today's Open)
+            // R12 = R13 + Q7, R11 = R12 + Q7, R10 = R11 + Q7, R9 = R10 + Q7
+            // R14 = R13 - Q7, R15 = R14 - Q7, R16 = R15 - Q7, R17 = R16 - Q7
+            const R13 = Q13;
+            const R12 = R13 + Q7, R11 = R12 + Q7, R10 = R11 + Q7, R9 = R10 + Q7;
+            const R14 = R13 - Q7, R15 = R14 - Q7, R16 = R15 - Q7, R17 = R16 - Q7;
 
-            // Update signal displays
-            [['ceOpenSignal', ceOpenSignal], ['ceHighSignal', ceHighSignal], ['ceLowSignal', ceLowSignal], ['ceCloseSignal', ceCloseSignal],
-             ['peOpenSignal', peOpenSignal], ['peHighSignal', peHighSignal], ['peLowSignal', peLowSignal], ['peCloseSignal', peCloseSignal]].forEach(([id, sig]) => {
-                const el = document.getElementById(id);
-                el.textContent = sig;
-                el.className = sig === 'Yes' ? 'yes' : 'no';
-            });
+            set('R9', R9); set('R13', R13); set('R17', R17);
+            set('L_R9', R9); set('L_R10', R10); set('L_R11', R11); set('L_R12', R12);
+            set('L_R13', R13);
+            set('L_R14', R14); set('L_R15', R15); set('L_R16', R16); set('L_R17', R17);
 
-            // Ranges and counts
-            document.getElementById('ceRange').textContent = (ceH - ceL).toFixed(2);
-            document.getElementById('peRange').textContent = (peH - peL).toFixed(2);
-            const ceYesCount = [ceOpenSignal, ceHighSignal, ceLowSignal, ceCloseSignal].filter(s => s === 'Yes').length;
-            const peYesCount = [peOpenSignal, peHighSignal, peLowSignal, peCloseSignal].filter(s => s === 'Yes').length;
-            document.getElementById('yesCountCE').textContent = ceYesCount;
-            document.getElementById('yesCountPE').textContent = peYesCount;
+            // ===== 2. MATCHMAKING =====
+            set('d_B4', B4); set('d_B5', B5); set('d_B6', B6); set('d_B7', B7);
+            set('d_D4', D4); set('d_D5', D5); set('d_D6', D6); set('d_D7', D7);
 
-            // Market levels
-            const yH = parseFloat(yesterdayHigh.value) || 0;
-            const yL = parseFloat(yesterdayLow.value) || 0;
-            const tO = parseFloat(todayOpen.value) || 0;
-            const rangePoints = yH - yL;
-            const range = rangePoints * 0.2611;
-            document.getElementById('dailyRange').textContent = range.toFixed(2);
-            document.getElementById('rangePoints').textContent = rangePoints.toFixed(2);
-            document.getElementById('midpointValue').textContent = tO.toFixed(2);
-            document.getElementById('openDisplay').textContent = tO.toFixed(2);
-            document.getElementById('ml1Display').textContent = (tO + range).toFixed(2);
-            document.getElementById('ml2Display').textContent = (tO + 2 * range).toFixed(2);
-            document.getElementById('ml3Display').textContent = (tO + 3 * range).toFixed(2);
-            document.getElementById('ml4Display').textContent = (tO + 4 * range).toFixed(2);
-            document.getElementById('ms1Display').textContent = (tO - range).toFixed(2);
-            document.getElementById('ms2Display').textContent = (tO - 2 * range).toFixed(2);
-            document.getElementById('ms3Display').textContent = (tO - 3 * range).toFixed(2);
-            document.getElementById('ms4Display').textContent = (tO - 4 * range).toFixed(2);
+            // C: B >= MIN(D5,D6) AND B <= MAX(D5,D6)
+            setSig('C4', isWithin(B4, D5, D6) ? 'Yes' : 'No');
+            setSig('C5', isWithin(B5, D5, D6) ? 'Yes' : 'No');
+            setSig('C6', isWithin(B6, D5, D6) ? 'Yes' : 'No');
+            setSig('C7', isWithin(B7, D5, D6) ? 'Yes' : 'No');
+            // E: D >= MIN(B5,B6) AND D <= MAX(B5,B6)
+            setSig('E4', isWithin(D4, B5, B6) ? 'Yes' : 'No');
+            setSig('E5', isWithin(D5, B5, B6) ? 'Yes' : 'No');
+            setSig('E6', isWithin(D6, B5, B6) ? 'Yes' : 'No');
+            setSig('E7', isWithin(D7, B5, B6) ? 'Yes' : 'No');
 
-            // OTM/ITM Strikes
-            document.getElementById('otmStrike1').textContent = (s1 + 50).toFixed(0);
-            document.getElementById('itmStrike1').textContent = (s1 - 50).toFixed(0);
-            document.getElementById('otmStrike2').textContent = (s1 + 100).toFixed(0);
-            document.getElementById('itmStrike2').textContent = (s1 - 100).toFixed(0);
-            document.getElementById('otmStrike3').textContent = (s1 + 150).toFixed(0);
-            document.getElementById('itmStrike3').textContent = (s1 - 150).toFixed(0);
+            // ===== 3. OTM/ITM STRIKES =====
+            set('I3', (B2 + 50).toFixed(0)); set('I4', (D2 - 50).toFixed(0));
+            set('I8', (B2 + 100).toFixed(0)); set('I9', (D2 - 100).toFixed(0));
+            set('I13', (B2 + 150).toFixed(0)); set('I14', (D2 - 150).toFixed(0));
+            set('M3', (B2 - 50).toFixed(0)); set('M4', (D2 + 50).toFixed(0));
+            set('M8', (B2 - 100).toFixed(0)); set('M9', (D2 + 100).toFixed(0));
+            set('M13', (B2 - 150).toFixed(0)); set('M14', (D2 + 150).toFixed(0));
 
-            // OTM/ITM Calculations
-            updateOTMITM();
+            // OTM/ITM Boundaries and Targets
+            const J5 = (J3 + J4) / 2;
+            const J10 = (J8 + J9) / 2;
+            const J6 = (J5 + J10) / 2;
+            const J15 = (J13 + J14) / 2;
+            const J11 = (J10 + J15) / 2;
+            const N5 = (N3 + N4) / 2;
+            const N10 = (N8 + N9) / 2;
+            const N6 = (N5 + N10) / 2;
+            const N15 = (N13 + N14) / 2;
+            const N11 = (N10 + N15) / 2;
 
-            // Expiry Strategy (ATM = 26.11% of close)
-            document.getElementById('atmCall').textContent = (ceC * 0.2611).toFixed(2);
-            document.getElementById('atmPut').textContent = (peC * 0.2611).toFixed(2);
-            document.getElementById('otm1Call').textContent = (parseFloat(document.getElementById('otmLow1').value || 0) * 0.2611).toFixed(2);
-            document.getElementById('otm1Put').textContent = (parseFloat(document.getElementById('otmLow2').value || 0) * 0.2611).toFixed(2);
-            document.getElementById('otm2Call').textContent = (parseFloat(document.getElementById('otmLow2').value || 0) * 0.2611).toFixed(2);
-            document.getElementById('otm2Put').textContent = (parseFloat(document.getElementById('otmLow3').value || 0) * 0.2611).toFixed(2);
-            document.getElementById('otm3Call').textContent = (parseFloat(document.getElementById('otmLow3').value || 0) * 0.2611).toFixed(2);
-            document.getElementById('otm3Put').textContent = (parseFloat(document.getElementById('otmLow1').value || 0) * 0.2611).toFixed(2);
+            set('J5', J5); set('J6', J6); set('J10', J10); set('J11', J11); set('J15', J15);
+            set('N5', N5); set('N6', N6); set('N10', N10); set('N11', N11); set('N15', N15);
 
-            // AVG Derived Levels
-            document.getElementById('avgCeClose').value = ceC.toFixed(2);
-            document.getElementById('avgPeClose').value = peC.toFixed(2);
-            const avgMidpoint = (ceC + peC) / 2;
-            document.getElementById('avgMidpoint').value = avgMidpoint.toFixed(2);
+            // ===== 4. EXPIRY STRATEGY =====
+            set('J21', B6 * 0.2611); set('K21', D6 * 0.2611);
+            set('J22', K3 * 0.2611); set('K22', K4 * 0.2611);
+            set('J23', K8 * 0.2611); set('K23', K9 * 0.2611);
+            set('J24', K13 * 0.2611); set('K24', K14 * 0.2611);
 
-            const allLevels = [
-                { id: 'avgL1', percent: 0.522 },
-                { id: 'avgL2', percent: 0.45675 },
-                { id: 'avgL3', percent: 0.3915 },
-                { id: 'avgL4', percent: 0.32625 },
-                { id: 'avgL5', percent: 0.2611 },
-                { id: 'avgL6', percent: 0.19575 },
-                { id: 'avgL7', percent: 0.1305 },
-                { id: 'avgL8', percent: 0.06525 },
-                { id: 'avgL9', percent: 0 },
-                { id: 'avgL10', percent: -0.06525 },
-                { id: 'avgL11', percent: -0.1305 },
-                { id: 'avgL12', percent: -0.19575 },
-                { id: 'avgL13', percent: -0.2611 },
-                { id: 'avgL14', percent: -0.32625 },
-                { id: 'avgL15', percent: -0.3915 },
-                { id: 'avgL16', percent: -0.45675 },
-                { id: 'avgL17', percent: -0.522 }
-            ];
+            // ===== 5. AVG DERIVED LEVELS =====
+            // AR11 = B7, AT11 = D7, G11 = (AR11+AT11)/2
+            const AR11 = B7;
+            const AT11 = D7;
+            const G11 = (AR11 + AT11) / 2;
 
-            allLevels.forEach(level => {
-                document.getElementById(level.id).textContent = (ceC * (1 + level.percent)).toFixed(2);
-                document.getElementById(level.id + 'PE').textContent = (peC * (1 + level.percent)).toFixed(2);
-            });
-        }
+            // Percentages: [G3=+52.2%, G4=+45.675%, G5=+39.15%, G6=+32.625%, G7=+26.11%, G8=+19.575%, G9=+13.05%, G10=+6.525%]
+            // G11=0%, G12=-6.525%, G13=-13.05%, G14=-19.575%, G15=-26.11%, G16=-32.625%, G17=-39.15%, G18=-45.675%, G19=-52.2%
+            const pcts = [0.522, 0.45675, 0.3915, 0.32625, 0.2611, 0.19575, 0.1305, 0.06525, 0, -0.06525, -0.1305, -0.19575, -0.2611, -0.32625, -0.3915, -0.45675, -0.522];
 
-        // OTM/ITM Boundary and Target
-        function updateOTMITM() {
-            for (let i = 1; i <= 3; i++) {
-                const close = parseFloat(document.getElementById(`otmClose${i}`).value) || 0;
-                const low = parseFloat(document.getElementById(`otmLow${i}`).value) || 0;
-                const itmClose = parseFloat(document.getElementById(`itmClose${i}`).value) || 0;
-                
-                // Boundary = (Close + Low) / 2
-                const boundary = ((close + low) / 2);
-                document.getElementById(`otmBoundary${i}`).textContent = boundary.toFixed(2);
-
-                // OTM Mid Point
-                document.getElementById(`otmMid${i}`).textContent = close.toFixed(2);
-
-                // ITM Mid Point
-                document.getElementById(`itmMid${i}`).textContent = itmClose.toFixed(2);
-
-                // Target (for next pair average)
-                let target = itmClose;
-                if (i < 3) {
-                    const nextClose = parseFloat(document.getElementById(`itmClose${i + 1}`).value) || 0;
-                    target = (itmClose + nextClose) / 2;
-                }
-                document.getElementById(`itmTarget${i}`).textContent = target.toFixed(2);
+            // AR column (CE) uses AR11
+            // AT column (PE) uses AT11
+            // G column (AVG) uses G11
+            for (let i = 0; i < 17; i++) {
+                const row = 3 + i;
+                const p = pcts[i];
+                // CE column (AR)
+                const arVal = AR11 * (1 + p);
+                set(`AR${row}`, arVal);
+                // PE column (AT)
+                const atVal = AT11 * (1 + p);
+                set(`AT${row}`, atVal);
+                // AVG column (G in OTM/ITM table)
+                const gVal = G11 * (1 + p);
+                set(`G${row}_row`, gVal);
             }
+
+            // H column MID POINTS in OTM/ITM
+            // H9 = (G11+N5)/2, H13 = (G11+J5)/2
+            set('H9', (G11 + N5) / 2);
+            set('H13', (G11 + J5) / 2);
         }
 
-        // Add event listeners
-        [ceOpen, ceHigh, ceLow, ceClose, peOpen, peHigh, peLow, peClose, strikePrice1, strikePrice2, yesterdayHigh, yesterdayLow, todayOpen].forEach(input => {
-            input.addEventListener('input', updateAll);
-            input.addEventListener('change', updateAll);
+        // Attach listeners to ALL inputs
+        inputIds.forEach(id => {
+            const el = $(id);
+            if (el) {
+                el.addEventListener('input', calc);
+                el.addEventListener('change', calc);
+            }
         });
 
-        // OTM/ITM input listeners
-        for (let i = 1; i <= 3; i++) {
-            document.getElementById(`otmClose${i}`).addEventListener('input', updateOTMITM);
-            document.getElementById(`otmLow${i}`).addEventListener('input', updateOTMITM);
-            document.getElementById(`itmClose${i}`).addEventListener('input', updateOTMITM);
-        }
-
-        updateAll();
+        // Initial calculation
+        calc();
     </script>
 </body>
+
 </html>
