@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>NIFTY Image to JSON Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .upload-area:hover {
+            background: #e3f2fd;
+            border-color: #2980b9;
+        }
+
+        .upload-area.dragover {
+            background: #d4edda;
+            border-color: #27ae60;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: #888;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .preview-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .preview-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 6px;
+        }
+
+        .json-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            margin: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-primary:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219653;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .actions {
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.loading {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 11px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .field {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+
+        .field-key {
+            font-weight: 700;
+            color: #555;
+        }
+
+        .field-val {
+            color: #2c3e50;
+            font-family: monospace;
+        }
+
+        .field input {
+            width: 70px;
+            padding: 2px 4px;
+            font-size: 11px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            text-align: right;
+            font-family: monospace;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 12px;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📸 NIFTY Image → JSON Converter</h1>
+        <p class="subtitle">Upload a NIFTY matchmaking sheet image and convert to JSON for the analyzer</p>
+
+        <div class="card">
+            <div class="section-title">🔑 API Key Configuration</div>
+            <div class="info-box">
+                🔒 <strong>Privacy:</strong> Your API key is stored only in YOUR browser's localStorage. Choose your
+                preferred AI provider below.
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-weight: 700; font-size: 13px; margin-right: 12px;">AI Provider:</label>
+                <label style="margin-right: 16px; cursor: pointer;"><input type="radio" name="provider"
+                        value="anthropic" onchange="switchProvider()" checked> 🟣 Anthropic (Claude)</label>
+                <label style="cursor: pointer;"><input type="radio" name="provider" value="openai"
+                        onchange="switchProvider()"> 🟢 OpenAI (GPT-4o)</label>
+            </div>
+
+            <div id="anthropicInfo" style="font-size: 11px; color: #555; margin-bottom: 8px;">
+                Get your key: <a href="https://console.anthropic.com/settings/keys" target="_blank"
+                    style="color: #667eea; font-weight: 700;">console.anthropic.com/settings/keys</a> · Format:
+                <code>sk-ant-api03-...</code> · Cost: ~$0.003/image
+            </div>
+            <div id="openaiInfo" style="font-size: 11px; color: #555; margin-bottom: 8px; display: none;">
+                Get your key: <a href="https://platform.openai.com/api-keys" target="_blank"
+                    style="color: #10a37f; font-weight: 700;">platform.openai.com/api-keys</a> · Format:
+                <code>sk-proj-...</code> or <code>sk-...</code> · Cost: ~$0.005/image
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..."
+                    style="flex: 1; padding: 10px; border: 2px solid #3498db; border-radius: 6px; font-family: monospace; font-size: 13px;">
+                <button class="btn btn-success" onclick="saveApiKey()">💾 Save Key</button>
+                <button class="btn btn-warning" onclick="toggleApiKeyVisibility()">👁️ Show</button>
+                <button class="btn btn-danger" onclick="clearApiKey()">🗑️ Clear</button>
+            </div>
+            <div id="apiKeyStatus" style="margin-top: 8px; font-size: 12px; font-weight: 600;"></div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">1️⃣ Upload Image</div>
+            <div class="info-box">
+                💡 <strong>Tip:</strong> Upload a clear screenshot of the NIFTY matchmaking sheet (like the one from
+                your trading group). The AI will extract all values automatically.
+            </div>
+
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">Click here or drag & drop your image</div>
+                <div class="upload-hint">Supports JPG, PNG, WebP (max 5MB)</div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+
+            <div id="status" class="status"></div>
+
+            <div class="actions">
+                <button class="btn btn-primary" id="convertBtn" onclick="convertImage()" disabled>🤖 Convert with
+                    AI</button>
+                <button class="btn btn-warning" onclick="clearAll()">🗑️ Clear</button>
+            </div>
+        </div>
+
+        <div class="preview-grid" id="previewGrid" style="display: none;">
+            <div class="card">
+                <div class="preview-label">📷 Image Preview</div>
+                <img id="imagePreview" alt="Preview">
+            </div>
+
+            <div class="card">
+                <div class="preview-label">📋 Extracted Values (Editable)</div>
+                <div class="field-grid" id="fieldGrid"></div>
+            </div>
+        </div>
+
+        <div class="card" id="jsonCard" style="display: none;">
+            <div class="section-title">2️⃣ JSON Output</div>
+            <div class="json-output" id="jsonOutput"></div>
+            <div class="actions">
+                <button class="btn btn-success" onclick="downloadJSON()">📥 Download JSON</button>
+                <button class="btn btn-primary" onclick="copyJSON()">📋 Copy to Clipboard</button>
+                <button class="btn btn-warning" onclick="regenerateFromFields()">🔄 Regenerate from Fields</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedImage = null;
+        let imageBase64 = null;
+        let imageMediaType = null;
+        let extractedData = null;
+
+        // ===== PROVIDER & API KEY MANAGEMENT =====
+        function getCurrentProvider() {
+            return document.querySelector('input[name="provider"]:checked')?.value || 'anthropic';
+        }
+
+        function switchProvider() {
+            const provider = getCurrentProvider();
+            document.getElementById('anthropicInfo').style.display = provider === 'anthropic' ? 'block' : 'none';
+            document.getElementById('openaiInfo').style.display = provider === 'openai' ? 'block' : 'none';
+            document.getElementById('apiKeyInput').placeholder = provider === 'anthropic' ? 'sk-ant-api03-...' : 'sk-proj-... or sk-...';
+
+            // Load saved key for this provider
+            const saved = localStorage.getItem(provider + '_api_key');
+            document.getElementById('apiKeyInput').value = saved || '';
+            if (saved) updateApiKeyStatus(`🔑 ${provider === 'anthropic' ? 'Anthropic' : 'OpenAI'} key loaded`, '#27ae60');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            const provider = getCurrentProvider();
+            if (!key) {
+                updateApiKeyStatus('❌ Please enter an API key', '#e74c3c');
+                return;
+            }
+            const expectedPrefix = provider === 'anthropic' ? 'sk-ant-' : 'sk-';
+            if (!key.startsWith(expectedPrefix)) {
+                if (!confirm(`Key doesn't look like ${provider === 'anthropic' ? 'an Anthropic' : 'an OpenAI'} key. Save anyway?`)) return;
+            }
+            localStorage.setItem(provider + '_api_key', key);
+            localStorage.setItem('preferred_provider', provider);
+            updateApiKeyStatus(`✅ ${provider === 'anthropic' ? 'Anthropic' : 'OpenAI'} key saved securely`, '#27ae60');
+        }
+
+        function clearApiKey() {
+            const provider = getCurrentProvider();
+            if (!confirm(`Clear saved ${provider === 'anthropic' ? 'Anthropic' : 'OpenAI'} API key?`)) return;
+            localStorage.removeItem(provider + '_api_key');
+            document.getElementById('apiKeyInput').value = '';
+            updateApiKeyStatus('🗑️ API key cleared', '#e74c3c');
+        }
+
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('apiKeyInput');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function updateApiKeyStatus(msg, color) {
+            const el = document.getElementById('apiKeyStatus');
+            el.textContent = msg;
+            el.style.color = color;
+            setTimeout(() => { el.textContent = ''; }, 4000);
+        }
+
+        // Auto-load saved API key on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const preferred = localStorage.getItem('preferred_provider') || 'anthropic';
+            const radio = document.querySelector(`input[name="provider"][value="${preferred}"]`);
+            if (radio) radio.checked = true;
+            switchProvider();
+        });
+
+        // Drag & drop
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+                handleFile({ target: { files: e.dataTransfer.files } });
+            }
+        });
+
+        function showStatus(msg, type = 'success') {
+            const el = document.getElementById('status');
+            el.className = 'status show ' + type;
+            el.innerHTML = type === 'loading' ? `<span class="spinner"></span>${msg}` : msg;
+        }
+
+        function hideStatus() {
+            document.getElementById('status').className = 'status';
+        }
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showStatus('❌ Please upload an image file', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showStatus('❌ Image too large (max 5MB)', 'error');
+                return;
+            }
+
+            uploadedImage = file;
+            imageMediaType = file.type;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('imagePreview').src = e.target.result;
+                imageBase64 = e.target.result.split(',')[1];
+                document.getElementById('previewGrid').style.display = 'grid';
+                document.getElementById('convertBtn').disabled = false;
+                showStatus('✅ Image loaded. Click "Convert with AI" to extract values.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function convertImage() {
+            if (!imageBase64) {
+                showStatus('❌ Please upload an image first', 'error');
+                return;
+            }
+
+            const provider = getCurrentProvider();
+            const apiKey = localStorage.getItem(provider + '_api_key');
+            if (!apiKey) {
+                showStatus(`❌ Please save your ${provider === 'anthropic' ? 'Anthropic' : 'OpenAI'} API key first`, 'error');
+                return;
+            }
+
+            document.getElementById('convertBtn').disabled = true;
+            showStatus(`🤖 ${provider === 'anthropic' ? 'Claude' : 'GPT-4o'} is analyzing the image... This may take 10-20 seconds.`, 'loading');
+
+            const prompt = `Analyze this NIFTY options matchmaking sheet image and extract ALL values into a structured JSON format.
+
+The image contains these sections:
+1. MATCHMAKING table with CE and PE Strike Prices and OHLC values
+2. AVG, OTM, ITM derived levels table
+3. Yest. High, Yest. Low, Today's Open
+4. Expiry strategy (ATM, OTM1, OTM2, OTM3 with CALL/PUT values)
+
+Extract values and return ONLY a valid JSON object (no markdown, no explanation) with this EXACT structure:
+
+{
+  "inputs": {
+    "Q4": "<Yesterday High>",
+    "Q5": "<Yesterday Low>",
+    "Q13": "<Today's Open>",
+    "B2": "<CE Strike Price>",
+    "D2": "<PE Strike Price>",
+    "B4": "<CE Open>",
+    "B5": "<CE High>",
+    "B6": "<CE Low>",
+    "B7": "<CE Close>",
+    "D4": "<PE Open>",
+    "D5": "<PE High>",
+    "D6": "<PE Low>",
+    "D7": "<PE Close>",
+    "J3": "<OTM +50 Close>",
+    "K3": "<OTM +50 Low>",
+    "J4": "<OTM -50 Close>",
+    "K4": "<OTM -50 Low>",
+    "J8": "<OTM +100 Close>",
+    "K8": "<OTM +100 Low>",
+    "J9": "<OTM -100 Close>",
+    "K9": "<OTM -100 Low>",
+    "J13": "<OTM +150 Close>",
+    "K13": "<OTM +150 Low>",
+    "J14": "<OTM -150 Close>",
+    "K14": "<OTM -150 Low>",
+    "N3": "<ITM -50 Close>",
+    "N4": "<ITM +50 Close>",
+    "N8": "<ITM -100 Close>",
+    "N9": "<ITM +100 Close>",
+    "N13": "<ITM -150 Close>",
+    "N14": "<ITM +150 Close>",
+    "_date": "<DD/MM/YYYY from image or today>"
+  }
+}
+
+Notes:
+- In OTM table: first row (e.g., 23500) is +50, second row (e.g., 23400) is -50 from strike
+- In ITM table: first row is -50, second row is +50 from strike
+- Return numbers as strings (preserve decimals)
+- If a value is unclear, use "0"
+- Return ONLY the JSON, nothing else`;
+
+            try {
+                let response, text;
+
+                if (provider === 'anthropic') {
+                    response = await fetch("https://api.anthropic.com/v1/messages", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "x-api-key": apiKey,
+                            "anthropic-version": "2023-06-01",
+                            "anthropic-dangerous-direct-browser-access": "true"
+                        },
+                        body: JSON.stringify({
+                            model: "claude-sonnet-4-20250514",
+                            max_tokens: 2000,
+                            messages: [{
+                                role: "user",
+                                content: [
+                                    { type: "image", source: { type: "base64", media_type: imageMediaType, data: imageBase64 } },
+                                    { type: "text", text: prompt }
+                                ]
+                            }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        let errMsg = `Anthropic API error ${response.status}`;
+                        try {
+                            const errJson = JSON.parse(errText);
+                            if (errJson.error?.message) errMsg += ': ' + errJson.error.message;
+                        } catch (e) { errMsg += ': ' + errText; }
+                        throw new Error(errMsg);
+                    }
+
+                    const data = await response.json();
+                    text = data.content.map(b => b.type === 'text' ? b.text : '').join('').trim();
+                } else {
+                    // OpenAI
+                    response = await fetch("https://api.openai.com/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + apiKey
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o",
+                            max_tokens: 2000,
+                            messages: [{
+                                role: "user",
+                                content: [
+                                    { type: "text", text: prompt },
+                                    { type: "image_url", image_url: { url: `data:${imageMediaType};base64,${imageBase64}` } }
+                                ]
+                            }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        let errMsg = `OpenAI API error ${response.status}`;
+                        try {
+                            const errJson = JSON.parse(errText);
+                            if (errJson.error?.message) errMsg += ': ' + errJson.error.message;
+                        } catch (e) { errMsg += ': ' + errText; }
+                        throw new Error(errMsg);
+                    }
+
+                    const data = await response.json();
+                    text = data.choices[0].message.content.trim();
+                }
+
+                // Clean up: remove markdown code fences if present
+                let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+
+                // Try to extract JSON object
+                const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+                if (jsonMatch) cleaned = jsonMatch[0];
+
+                extractedData = JSON.parse(cleaned);
+
+                // Add timestamp
+                if (!extractedData.inputs._timestamp) {
+                    extractedData.inputs._timestamp = new Date().toISOString();
+                }
+                if (!extractedData.inputs._date) {
+                    extractedData.inputs._date = new Date().toLocaleDateString('en-IN');
+                }
+
+                displayFields(extractedData.inputs);
+                displayJSON(extractedData);
+                document.getElementById('jsonCard').style.display = 'block';
+                showStatus('✅ Successfully extracted! Review the values below and download.', 'success');
+            } catch (err) {
+                console.error(err);
+                showStatus('❌ Error: ' + err.message, 'error');
+            } finally {
+                document.getElementById('convertBtn').disabled = false;
+            }
+        }
+
+        const fieldLabels = {
+            Q4: 'Yest. High', Q5: 'Yest. Low', Q13: 'Today Open',
+            B2: 'CE Strike', D2: 'PE Strike',
+            B4: 'CE Open', B5: 'CE High', B6: 'CE Low', B7: 'CE Close',
+            D4: 'PE Open', D5: 'PE High', D6: 'PE Low', D7: 'PE Close',
+            J3: 'OTM+50 Close', K3: 'OTM+50 Low',
+            J4: 'OTM-50 Close', K4: 'OTM-50 Low',
+            J8: 'OTM+100 Close', K8: 'OTM+100 Low',
+            J9: 'OTM-100 Close', K9: 'OTM-100 Low',
+            J13: 'OTM+150 Close', K13: 'OTM+150 Low',
+            J14: 'OTM-150 Close', K14: 'OTM-150 Low',
+            N3: 'ITM-50 Close', N4: 'ITM+50 Close',
+            N8: 'ITM-100 Close', N9: 'ITM+100 Close',
+            N13: 'ITM-150 Close', N14: 'ITM+150 Close'
+        };
+
+        function displayFields(inputs) {
+            const grid = document.getElementById('fieldGrid');
+            grid.innerHTML = '';
+            Object.entries(fieldLabels).forEach(([key, label]) => {
+                const val = inputs[key] || '0';
+                const div = document.createElement('div');
+                div.className = 'field';
+                div.innerHTML = `<span class="field-key">${label}</span><input type="text" id="fld_${key}" value="${val}" onchange="updateField('${key}', this.value)">`;
+                grid.appendChild(div);
+            });
+        }
+
+        function updateField(key, value) {
+            if (extractedData && extractedData.inputs) {
+                extractedData.inputs[key] = value;
+                displayJSON(extractedData);
+            }
+        }
+
+        function regenerateFromFields() {
+            if (!extractedData) return;
+            Object.keys(fieldLabels).forEach(key => {
+                const el = document.getElementById('fld_' + key);
+                if (el) extractedData.inputs[key] = el.value;
+            });
+            displayJSON(extractedData);
+            showStatus('✅ JSON regenerated from edited fields', 'success');
+        }
+
+        function displayJSON(data) {
+            document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+        }
+
+        function downloadJSON() {
+            if (!extractedData) return;
+            const date = extractedData.inputs._date || new Date().toISOString().split('T')[0];
+            const cleanDate = date.replace(/\//g, '-');
+            const filename = `nifty-${cleanDate}.json`;
+            const blob = new Blob([JSON.stringify(extractedData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus(`✅ Downloaded: ${filename}`, 'success');
+        }
+
+        function copyJSON() {
+            if (!extractedData) return;
+            navigator.clipboard.writeText(JSON.stringify(extractedData, null, 2))
+                .then(() => showStatus('✅ Copied to clipboard!', 'success'))
+                .catch(() => showStatus('❌ Copy failed', 'error'));
+        }
+
+        function clearAll() {
+            uploadedImage = null;
+            imageBase64 = null;
+            extractedData = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('previewGrid').style.display = 'none';
+            document.getElementById('jsonCard').style.display = 'none';
+            document.getElementById('convertBtn').disabled = true;
+            hideStatus();
+        }
+    </script>
+</body>
+
+</html>
