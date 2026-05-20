@@ -192,9 +192,11 @@
             padding: 12px;
             border-radius: 6px;
             margin: 12px 0;
-            text-align: center;
+            text-align: left;
             font-weight: 600;
             display: none;
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
 
         .status.show {
@@ -204,16 +206,19 @@
         .status.success {
             background: #d4edda;
             color: #155724;
+            text-align: center;
         }
 
         .status.error {
             background: #f8d7da;
             color: #721c24;
+            font-size: 12px;
         }
 
         .status.loading {
             background: #cce5ff;
             color: #004085;
+            text-align: center;
         }
 
         .spinner {
@@ -383,18 +388,40 @@
                 <label style="margin-right: 16px; cursor: pointer;"><input type="radio" name="provider"
                         value="anthropic" onchange="switchProvider()" checked> 🟣 Anthropic (Claude)</label>
                 <label style="cursor: pointer;"><input type="radio" name="provider" value="openai"
-                        onchange="switchProvider()"> 🟢 OpenAI (GPT-4o)</label>
+                        onchange="switchProvider()"> 🟢 OpenAI (GPT-5)</label>
+            </div>
+
+            <div style="margin-bottom: 12px;" id="modelSelector">
+                <label style="font-weight: 700; font-size: 13px; margin-right: 12px;">Claude Model:</label>
+                <label style="margin-right: 12px; cursor: pointer;"><input type="radio" name="claudeModel"
+                        value="claude-opus-4-7" checked> 🏆 Opus 4.7 (Best)</label>
+                <label style="margin-right: 12px; cursor: pointer;"><input type="radio" name="claudeModel"
+                        value="claude-sonnet-4-6"> ⚡ Sonnet 4.6 (Fast)</label>
+                <label style="margin-right: 12px; cursor: pointer;"><input type="radio" name="claudeModel"
+                        value="claude-haiku-4-5"> 💨 Haiku 4.5 (Cheapest)</label>
+            </div>
+
+            <div style="margin-bottom: 12px; display: none;" id="openaiModelSelector">
+                <label style="font-weight: 700; font-size: 13px; margin-right: 12px;">OpenAI Model:</label>
+                <label style="margin-right: 12px; cursor: pointer;"><input type="radio" name="openaiModel"
+                        value="gpt-5.5" checked> 🏆 GPT-5.5 (Best)</label>
+                <label style="margin-right: 12px; cursor: pointer;"><input type="radio" name="openaiModel"
+                        value="gpt-5.4"> ⚡ GPT-5.4 (Fast)</label>
+                <label style="margin-right: 12px; cursor: pointer;"><input type="radio" name="openaiModel"
+                        value="gpt-5.4-mini"> 💨 GPT-5.4 Mini (Cheap)</label>
+                <label style="margin-right: 12px; cursor: pointer;"><input type="radio" name="openaiModel"
+                        value="gpt-5.4-nano"> ⚡ Nano (Cheapest)</label>
             </div>
 
             <div id="anthropicInfo" style="font-size: 11px; color: #555; margin-bottom: 8px;">
                 Get your key: <a href="https://console.anthropic.com/settings/keys" target="_blank"
                     style="color: #667eea; font-weight: 700;">console.anthropic.com/settings/keys</a> · Format:
-                <code>sk-ant-api03-...</code> · Cost: ~$0.003/image
+                <code>sk-ant-api03-...</code>
             </div>
             <div id="openaiInfo" style="font-size: 11px; color: #555; margin-bottom: 8px; display: none;">
                 Get your key: <a href="https://platform.openai.com/api-keys" target="_blank"
                     style="color: #10a37f; font-weight: 700;">platform.openai.com/api-keys</a> · Format:
-                <code>sk-proj-...</code> or <code>sk-...</code> · Cost: ~$0.005/image
+                <code>sk-proj-...</code> or <code>sk-...</code>
             </div>
 
             <div style="display: flex; gap: 8px; align-items: center;">
@@ -476,6 +503,8 @@
             const provider = getCurrentProvider();
             document.getElementById('anthropicInfo').style.display = provider === 'anthropic' ? 'block' : 'none';
             document.getElementById('openaiInfo').style.display = provider === 'openai' ? 'block' : 'none';
+            document.getElementById('modelSelector').style.display = provider === 'anthropic' ? 'block' : 'none';
+            document.getElementById('openaiModelSelector').style.display = provider === 'openai' ? 'block' : 'none';
             document.getElementById('apiKeyInput').placeholder = provider === 'anthropic' ? 'sk-ant-api03-...' : 'sk-proj-... or sk-...';
 
             // Load saved key for this provider
@@ -593,7 +622,10 @@
             }
 
             document.getElementById('convertBtn').disabled = true;
-            showStatus(`🤖 ${provider === 'anthropic' ? 'Claude' : 'GPT-4o'} is analyzing the image... This may take 10-20 seconds.`, 'loading');
+            const modelName = provider === 'anthropic'
+                ? (document.querySelector('input[name="claudeModel"]:checked')?.value || 'claude-opus-4-7')
+                : (document.querySelector('input[name="openaiModel"]:checked')?.value || 'gpt-5.5');
+            showStatus(`🤖 ${modelName} is analyzing the image... This may take 10-30 seconds.`, 'loading');
 
             const indexType = document.querySelector('input[name="indexType"]:checked')?.value || 'nifty';
             const isSensex = indexType === 'sensex';
@@ -606,125 +638,204 @@
     "N18": "<ITM -400 Close>",
     "N19": "<ITM +400 Close>"` : '';
 
-            const prompt = `Analyze this ${isSensex ? 'SENSEX' : 'NIFTY'} options matchmaking sheet image and extract ALL values into a structured JSON format.
+            const prompt = `You are a precise OCR system extracting trading data from a ${isSensex ? 'SENSEX' : 'NIFTY'} options matchmaking spreadsheet screenshot.
 
-The image contains these sections:
-1. MATCHMAKING table with CE and PE Strike Prices and OHLC values
-2. AVG, OTM, ITM derived levels table (strikes incremented by ${stepInfo})
-3. Yest. High, Yest. Low, Today's Open
-4. Expiry strategy (ATM, OTM1, OTM2, OTM3${isSensex ? ', OTM4' : ''} with CALL/PUT values)
+# SPREADSHEET LAYOUT (sections from left to right):
 
-Extract values and return ONLY a valid JSON object (no markdown, no explanation) with this EXACT structure:
+## SECTION 1: MATCHMAKING TABLE (top-left, small table)
+- Header: "MATCHMAKING"
+- Row "STRIKE PRICE": Two cells - CE strike and PE strike (both usually same number like ${isSensex ? '74700' : '23700'})
+- Below has subheaders "CE" and "PE"
+- 4 data rows: OPEN, HIGH, LOW, CLOSE - each row has [CE value | Yes/No | PE value | Yes/No]
+- The values in CE/PE columns are in BLACK or RED text - those are what we need
+
+## SECTION 2: AVG | OTM | ITM TABLE (large middle table)
+Columns: AVG | H | OTM Strike | Close | Low | L | ITM Strike | Close
+This table has multiple rows. The OTM/ITM strike pairs follow this REPEATING pattern:
+
+For each pair (e.g., Pair 1 with ±${isSensex ? '100' : '50'}):
+- **Yellow row (J=Close, K=Low)**: Strike "${isSensex ? 'XX800' : 'XX700+50'}" | Close value (red) | Low value (red)
+- **Yellow row (J=Close, K=Low)**: Strike "${isSensex ? 'XX600' : 'XX700-50'}" | Close value (red) | Low value (red)
+- **Green BOUNDRY row**: Has "BOUNDRY" label and a calculated value (DO NOT extract)
+- **Yellow MID row** (single value in J, no K): One value in middle (this is a calculated MID POINT - DO NOT extract)
+- Then ITM side has same structure for the N column (only Close, no Low)
+
+${isSensex ? 'SENSEX has 4 OTM/ITM pairs at strike offsets ±100, ±200, ±300, ±400.' : 'NIFTY has 3 OTM/ITM pairs at strike offsets ±50, ±100, ±150.'}
+
+## SECTION 3: RIGHT SIDE (small info boxes)
+- "Yest. High" with pink/colored value
+- "Yest. Low" with colored value
+- "Today's Range" 
+- "Today's Open" (in pink/magenta highlighted cell)
+
+# CRITICAL EXTRACTION RULES:
+
+1. **ONLY extract values from YELLOW input rows** - never from green (BOUNDRY) or orange (MID/TARGET) cells
+2. **Numbers in RED TEXT** are the actual trading values to extract
+3. **Each pair has exactly 2 input rows** (one for +offset strike, one for -offset strike)
+4. **Both Close AND Low columns** must be extracted for OTM pairs
+5. **Only Close column** for ITM pairs (no Low column in ITM)
+6. **If a cell appears empty or contains a label** ("BOUNDRY", "TARGET", "MID", "MID POINT"), use "0"
+7. **Decimal precision**: preserve exactly as shown (e.g., "352.35", "216.75", "488.6")
+
+# OUTPUT FORMAT:
+
+Return ONLY a valid JSON object (no markdown, no backticks, no explanation text):
 
 {
   "inputs": {
-    "Q4": "<Yesterday High>",
-    "Q5": "<Yesterday Low>",
-    "Q13": "<Today's Open>",
-    "B2": "<CE Strike Price>",
-    "D2": "<PE Strike Price>",
-    "B4": "<CE Open>",
-    "B5": "<CE High>",
-    "B6": "<CE Low>",
-    "B7": "<CE Close>",
-    "D4": "<PE Open>",
-    "D5": "<PE High>",
-    "D6": "<PE Low>",
-    "D7": "<PE Close>",
-    "J3": "<OTM +${isSensex ? '100' : '50'} Close>",
-    "K3": "<OTM +${isSensex ? '100' : '50'} Low>",
-    "J4": "<OTM -${isSensex ? '100' : '50'} Close>",
-    "K4": "<OTM -${isSensex ? '100' : '50'} Low>",
-    "J8": "<OTM +${isSensex ? '200' : '100'} Close>",
-    "K8": "<OTM +${isSensex ? '200' : '100'} Low>",
-    "J9": "<OTM -${isSensex ? '200' : '100'} Close>",
-    "K9": "<OTM -${isSensex ? '200' : '100'} Low>",
-    "J13": "<OTM +${isSensex ? '300' : '150'} Close>",
-    "K13": "<OTM +${isSensex ? '300' : '150'} Low>",
-    "J14": "<OTM -${isSensex ? '300' : '150'} Close>",
-    "K14": "<OTM -${isSensex ? '300' : '150'} Low>",
-    "N3": "<ITM -${isSensex ? '100' : '50'} Close>",
-    "N4": "<ITM +${isSensex ? '100' : '50'} Close>",
-    "N8": "<ITM -${isSensex ? '200' : '100'} Close>",
-    "N9": "<ITM +${isSensex ? '200' : '100'} Close>",
-    "N13": "<ITM -${isSensex ? '300' : '150'} Close>",
-    "N14": "<ITM +${isSensex ? '300' : '150'} Close>"${otm4Fields},
-    "_date": "<DD/MM/YYYY from image or today>"
+    "Q4": "<Yest. High - right side colored cell>",
+    "Q5": "<Yest. Low - right side colored cell>",
+    "Q13": "<Today's Open - pink/magenta cell on right>",
+    "B2": "<CE Strike Price from Matchmaking table>",
+    "D2": "<PE Strike Price from Matchmaking table>",
+    "B4": "<CE Open value>",
+    "B5": "<CE High value>",
+    "B6": "<CE Low value>",
+    "B7": "<CE Close value>",
+    "D4": "<PE Open value>",
+    "D5": "<PE High value>",
+    "D6": "<PE Low value>",
+    "D7": "<PE Close value>",
+    "J3": "<OTM Pair1 first row Close (top yellow cell)>",
+    "K3": "<OTM Pair1 first row Low (top yellow cell)>",
+    "J4": "<OTM Pair1 second row Close (bottom yellow cell)>",
+    "K4": "<OTM Pair1 second row Low (bottom yellow cell)>",
+    "J8": "<OTM Pair2 first row Close>",
+    "K8": "<OTM Pair2 first row Low>",
+    "J9": "<OTM Pair2 second row Close>",
+    "K9": "<OTM Pair2 second row Low>",
+    "J13": "<OTM Pair3 first row Close>",
+    "K13": "<OTM Pair3 first row Low>",
+    "J14": "<OTM Pair3 second row Close>",
+    "K14": "<OTM Pair3 second row Low>",${isSensex ? `
+    "J18": "<OTM Pair4 first row Close>",
+    "K18": "<OTM Pair4 first row Low>",
+    "J19": "<OTM Pair4 second row Close>",
+    "K19": "<OTM Pair4 second row Low>",` : ''}
+    "N3": "<ITM Pair1 first row Close>",
+    "N4": "<ITM Pair1 second row Close>",
+    "N8": "<ITM Pair2 first row Close>",
+    "N9": "<ITM Pair2 second row Close>",
+    "N13": "<ITM Pair3 first row Close>",
+    "N14": "<ITM Pair3 second row Close>",${isSensex ? `
+    "N18": "<ITM Pair4 first row Close>",
+    "N19": "<ITM Pair4 second row Close>",` : ''}
+    "_date": "<DD/MM/YYYY - today's date>"
   }
 }
 
-Notes:
-- In OTM table: first row is +offset, second row is -offset from strike
-- In ITM table: first row is -offset, second row is +offset from strike
-- Return numbers as strings (preserve decimals)
-- If a value is unclear, use "0"
-- Return ONLY the JSON, nothing else`;
+# VALIDATION CHECKLIST (must pass before responding):
+✓ Every OTM Close and Low value is a NUMBER (not 0 unless cell is truly blank)
+✓ Every ITM Close value is a NUMBER (not 0)
+✓ ${isSensex ? 'All 4 OTM/ITM pairs (8 OTM rows × 2 cols + 8 ITM rows = 24 values)' : 'All 3 OTM/ITM pairs (6 OTM rows × 2 cols + 6 ITM rows = 18 values)'} are extracted
+✓ Numbers preserve decimal precision (e.g., "488.6" not "489" or "488.60")
+✓ The two rows in each pair have DIFFERENT values
+✓ ITM Close values are typically LARGER than OTM Close values
+✓ Re-check ANY value set to 0 - look harder at that cell
+
+Return the JSON now:`;
 
             try {
                 let response, text;
 
                 if (provider === 'anthropic') {
-                    response = await fetch("https://api.anthropic.com/v1/messages", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-api-key": apiKey,
-                            "anthropic-version": "2023-06-01",
-                            "anthropic-dangerous-direct-browser-access": "true"
-                        },
-                        body: JSON.stringify({
-                            model: "claude-sonnet-4-20250514",
-                            max_tokens: 2000,
-                            messages: [{
-                                role: "user",
-                                content: [
-                                    { type: "image", source: { type: "base64", media_type: imageMediaType, data: imageBase64 } },
-                                    { type: "text", text: prompt }
-                                ]
-                            }]
-                        })
-                    });
+                    const selectedModel = document.querySelector('input[name="claudeModel"]:checked')?.value || 'claude-opus-4-7';
+
+                    try {
+                        response = await fetch("https://api.anthropic.com/v1/messages", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-api-key": apiKey,
+                                "anthropic-version": "2023-06-01",
+                                "anthropic-dangerous-direct-browser-access": "true"
+                            },
+                            body: JSON.stringify({
+                                model: selectedModel,
+                                max_tokens: 4000,
+                                messages: [{
+                                    role: "user",
+                                    content: [
+                                        { type: "image", source: { type: "base64", media_type: imageMediaType, data: imageBase64 } },
+                                        { type: "text", text: prompt }
+                                    ]
+                                }]
+                            })
+                        });
+                    } catch (networkErr) {
+                        // Network-level errors (CORS, DNS, no internet, etc.)
+                        throw new Error(`Network error: ${networkErr.message}. Possible causes:
+1. Check your internet connection
+2. Verify API key is correct (starts with sk-ant-)
+3. If using file:// protocol, try opening from a local server
+4. Check browser console (F12) for CORS errors
+5. Try a different browser`);
+                    }
 
                     if (!response.ok) {
                         const errText = await response.text();
                         let errMsg = `Anthropic API error ${response.status}`;
+                        if (response.status === 401) errMsg += ' (Invalid API key)';
+                        else if (response.status === 429) errMsg += ' (Rate limit / quota exceeded)';
+                        else if (response.status === 400) errMsg += ' (Bad request - check model name)';
+                        else if (response.status === 404) errMsg += ' (Model not found - try a different model)';
                         try {
                             const errJson = JSON.parse(errText);
                             if (errJson.error?.message) errMsg += ': ' + errJson.error.message;
-                        } catch (e) { errMsg += ': ' + errText; }
+                        } catch (e) { errMsg += ': ' + errText.substring(0, 200); }
                         throw new Error(errMsg);
                     }
 
                     const data = await response.json();
                     text = data.content.map(b => b.type === 'text' ? b.text : '').join('').trim();
                 } else {
-                    // OpenAI
-                    response = await fetch("https://api.openai.com/v1/chat/completions", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer " + apiKey
-                        },
-                        body: JSON.stringify({
-                            model: "gpt-4o",
-                            max_tokens: 2000,
-                            messages: [{
-                                role: "user",
-                                content: [
-                                    { type: "text", text: prompt },
-                                    { type: "image_url", image_url: { url: `data:${imageMediaType};base64,${imageBase64}` } }
-                                ]
-                            }]
-                        })
-                    });
+                    // OpenAI - use chat completions with max_completion_tokens for GPT-5 models
+                    const openaiModel = document.querySelector('input[name="openaiModel"]:checked')?.value || 'gpt-5.5';
+                    const isGpt5 = openaiModel.startsWith('gpt-5');
+
+                    const bodyParams = {
+                        model: openaiModel,
+                        messages: [{
+                            role: "user",
+                            content: [
+                                { type: "text", text: prompt },
+                                { type: "image_url", image_url: { url: `data:${imageMediaType};base64,${imageBase64}` } }
+                            ]
+                        }]
+                    };
+
+                    // GPT-5 uses max_completion_tokens, older uses max_tokens
+                    if (isGpt5) {
+                        bodyParams.max_completion_tokens = 4000;
+                    } else {
+                        bodyParams.max_tokens = 4000;
+                    }
+
+                    try {
+                        response = await fetch("https://api.openai.com/v1/chat/completions", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": "Bearer " + apiKey
+                            },
+                            body: JSON.stringify(bodyParams)
+                        });
+                    } catch (networkErr) {
+                        throw new Error(`Network error: ${networkErr.message}. Check internet/API key/browser console for CORS errors.`);
+                    }
 
                     if (!response.ok) {
                         const errText = await response.text();
                         let errMsg = `OpenAI API error ${response.status}`;
+                        if (response.status === 401) errMsg += ' (Invalid API key)';
+                        else if (response.status === 429) errMsg += ' (Rate limit / quota exceeded)';
+                        else if (response.status === 404) errMsg += ' (Model not found - try a different OpenAI model like gpt-5.4-mini)';
+                        else if (response.status === 400) errMsg += ' (Bad request - the model may not support vision or needs different params)';
                         try {
                             const errJson = JSON.parse(errText);
                             if (errJson.error?.message) errMsg += ': ' + errJson.error.message;
-                        } catch (e) { errMsg += ': ' + errText; }
+                        } catch (e) { errMsg += ': ' + errText.substring(0, 300); }
                         throw new Error(errMsg);
                     }
 
