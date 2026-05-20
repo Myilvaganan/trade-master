@@ -1,1064 +1,744 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <meta charset="UTF-8">
-    <title>NIFTY Options Analyzer</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<title>NIFTY Options Analyzer</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 6px; font-size: 11px; }
+.container { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+h1 { grid-column: 1/-1; text-align: center; font-size: 16px; margin-bottom: 4px; color: #2c3e50; }
+.card { background: white; border-radius: 6px; padding: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.section-full { grid-column: 1/-1; }
+.title { font-size: 12px; font-weight: 700; color: #2c3e50; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid #3498db; text-transform: uppercase; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+label { font-size: 9px; font-weight: 600; display: block; margin-bottom: 2px; color: #555; }
+input { width: 100%; padding: 3px 4px; border: 1px solid #bdc3c7; border-radius: 3px; font-size: 11px; }
+table { width: 100%; border-collapse: collapse; font-size: 10px; margin: 6px 0; }
+th { background: #34495e; color: white; padding: 4px 2px; font-size: 9px; }
+td { padding: 4px 3px; border: 1px solid #ecf0f1; text-align: center; }
+.yes { background: #d4edda !important; font-weight: 700; }
+.no { background: #f8d7da !important; }
+.ro { background: #ecf0f1; font-weight: 600; }
+.ui { background: #fffacd !important; }
+.bnd { background: #90EE90 !important; font-weight: 700; }
+.tgt { background: #FFB6C1 !important; font-weight: 700; }
+.mid { background: #ffd700 !important; font-weight: 700; }
+.gold { background: #ffd700; font-weight: 700; }
+.green { background: #90EE90; font-weight: 700; }
+.blue-mid { background: #0099ff; color: white; font-weight: 700; }
+.small-input { width: 100%; padding: 2px; font-size: 9px; }
+.info { background: #f5f7fa; padding: 6px; border-radius: 4px; text-align: center; border-left: 2px solid #3498db; }
+.info-l { font-size: 8px; color: #7f8c8d; margin-bottom: 2px; }
+.info-v { font-size: 14px; font-weight: 700; color: #2c3e50; }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
-            padding: 6px;
-            font-size: 11px;
-        }
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+    .container { grid-template-columns: 1fr; }
+    body { font-size: 12px; }
+    table { font-size: 11px; }
+    .small-input { font-size: 10px; padding: 3px; }
+}
 
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
+@media (max-width: 768px) {
+    body { padding: 4px; font-size: 13px; }
+    h1 { font-size: 18px; }
+    .card { padding: 10px; }
+    .title { font-size: 13px; }
+    label { font-size: 10px; }
+    input { font-size: 13px; padding: 6px; }
+    table { font-size: 11px; }
+    th { font-size: 10px; padding: 6px 3px; }
+    td { padding: 6px 3px; font-size: 11px; }
+    .small-input { font-size: 11px; padding: 4px; }
+    .g3, .g4 { grid-template-columns: repeat(2, 1fr); }
+    .info-v { font-size: 16px; }
+    /* Make tables scrollable */
+    .card { overflow-x: auto; }
+}
 
-        h1 {
-            grid-column: 1/-1;
-            text-align: center;
-            font-size: 16px;
-            margin-bottom: 4px;
-            color: #2c3e50;
-        }
-
-        .card {
-            background: white;
-            border-radius: 6px;
-            padding: 8px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-full {
-            grid-column: 1/-1;
-        }
-
-        .title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 6px;
-            padding-bottom: 3px;
-            border-bottom: 2px solid #3498db;
-            text-transform: uppercase;
-        }
-
-        .g2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-
-        .g3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-
-        .g4 {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
-        }
-
-        label {
-            font-size: 9px;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 2px;
-            color: #555;
-        }
-
-        input {
-            width: 100%;
-            padding: 3px 4px;
-            border: 1px solid #bdc3c7;
-            border-radius: 3px;
-            font-size: 11px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-            margin: 6px 0;
-        }
-
-        th {
-            background: #34495e;
-            color: white;
-            padding: 4px 2px;
-            font-size: 9px;
-        }
-
-        td {
-            padding: 4px 3px;
-            border: 1px solid #ecf0f1;
-            text-align: center;
-        }
-
-        .yes {
-            background: #d4edda !important;
-            font-weight: 700;
-        }
-
-        .no {
-            background: #f8d7da !important;
-        }
-
-        .ro {
-            background: #ecf0f1;
-            font-weight: 600;
-        }
-
-        .ui {
-            background: #fffacd !important;
-        }
-
-        .bnd {
-            background: #90EE90 !important;
-            font-weight: 700;
-        }
-
-        .tgt {
-            background: #FFB6C1 !important;
-            font-weight: 700;
-        }
-
-        .mid {
-            background: #ffd700 !important;
-            font-weight: 700;
-        }
-
-        .gold {
-            background: #ffd700;
-            font-weight: 700;
-        }
-
-        .green {
-            background: #90EE90;
-            font-weight: 700;
-        }
-
-        .blue-mid {
-            background: #0099ff;
-            color: white;
-            font-weight: 700;
-        }
-
-        .small-input {
-            width: 100%;
-            padding: 2px;
-            font-size: 9px;
-        }
-
-        .info {
-            background: #f5f7fa;
-            padding: 6px;
-            border-radius: 4px;
-            text-align: center;
-            border-left: 2px solid #3498db;
-        }
-
-        .info-l {
-            font-size: 8px;
-            color: #7f8c8d;
-            margin-bottom: 2px;
-        }
-
-        .info-v {
-            font-size: 14px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-    </style>
+@media (max-width: 480px) {
+    body { padding: 3px; }
+    h1 { font-size: 16px; }
+    .g2, .g3, .g4 { grid-template-columns: 1fr; }
+    .card { padding: 8px; }
+    table { font-size: 10px; }
+    th { font-size: 9px; padding: 4px 2px; }
+    td { padding: 4px 2px; }
+    /* Stack buttons vertically on mobile */
+    .card[style*="667eea"] > div { flex-direction: column !important; align-items: stretch !important; }
+    .card[style*="667eea"] > div > div { flex-direction: column !important; width: 100%; }
+    .card[style*="667eea"] button { width: 100%; margin: 2px 0; }
+    .card[style*="667eea"] input { width: 100%; }
+}
+</style>
 </head>
-
 <body>
-    <div class="container">
-        <h1>🎯 NIFTY Options Analyzer</h1>
+<div class="container">
+<h1>🎯 NIFTY Options Analyzer</h1>
 
-        <!-- Storage Controls -->
-        <div class="card section-full"
-            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <button onclick="saveData()"
-                        style="padding: 6px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">💾
-                        Save Values</button>
-                    <button onclick="loadData()"
-                        style="padding: 6px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📂
-                        Load Last Values</button>
-                    <button onclick="clearData()"
-                        style="padding: 6px 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">🗑️
-                        Clear</button>
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="text" id="exportFilename" placeholder="Filename (optional)"
-                        style="padding: 5px; border-radius: 4px; border: none; font-size: 11px; width: 150px;">
-                    <button onclick="exportJSON()"
-                        style="padding: 6px 12px; background: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📥
-                        Export JSON</button>
-                    <button onclick="exportCSV()"
-                        style="padding: 6px 12px; background: #16a085; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📊
-                        Export CSV</button>
-                    <label
-                        style="padding: 6px 12px; background: #9b59b6; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📤
-                        Import JSON
-                        <input type="file" id="importFile" accept=".json" onchange="importJSON(event)"
-                            style="display: none;">
-                    </label>
-                </div>
-            </div>
-            <div id="statusMsg"
-                style="margin-top: 6px; font-size: 11px; font-style: italic; text-align: center; min-height: 14px;">
-            </div>
-        </div>
+<!-- Storage Controls -->
+<div class="card section-full" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+<div style="display: flex; gap: 8px; align-items: center;">
+<button onclick="saveData()" style="padding: 6px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">💾 Save Values</button>
+<button onclick="loadData()" style="padding: 6px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📂 Load Last Values</button>
+<button onclick="clearData()" style="padding: 6px 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">🗑️ Clear</button>
+</div>
+<div style="display: flex; gap: 8px; align-items: center;">
+<input type="text" id="exportFilename" placeholder="Filename (optional)" style="padding: 5px; border-radius: 4px; border: none; font-size: 11px; width: 150px;">
+<button onclick="exportJSON()" style="padding: 6px 12px; background: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📥 Export JSON</button>
+<button onclick="exportCSV()" style="padding: 6px 12px; background: #16a085; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📊 Export CSV</button>
+<label style="padding: 6px 12px; background: #9b59b6; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">📤 Import JSON
+<input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display: none;">
+</label>
+<label style="padding: 6px 12px; background: #e67e22; color: white; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 11px;">🖼️ Image → JSON
+<input type="file" id="imageFile" accept="image/*" onchange="convertImageToJSON(event)" style="display: none;">
+</label>
+</div>
+</div>
+<div id="statusMsg" style="margin-top: 6px; font-size: 11px; font-style: italic; text-align: center; min-height: 14px;"></div>
+</div>
 
-        <!-- ===== 1. MARKET ANALYSIS ===== -->
-        <div class="card">
-            <div class="title">📍 Market Analysis (Today's Range)</div>
-            <div class="g3">
-                <div><label>Yest. High (Q4)</label><input type="number" id="Q4" value="0" step="0.01"></div>
-                <div><label>Yest. Low (Q5)</label><input type="number" id="Q5" value="0" step="0.01"></div>
-                <div><label>Today's Open (Q13)</label><input type="number" id="Q13" value="0" step="0.01"></div>
-            </div>
-            <div class="g4" style="margin-top: 6px;">
-                <div class="info">
-                    <div class="info-l">Today's Range (Q7)</div>
-                    <div class="info-v" id="Q7">-</div>
-                </div>
-                <div class="info">
-                    <div class="info-l">R9 (Top)</div>
-                    <div class="info-v" id="R9">-</div>
-                </div>
-                <div class="info">
-                    <div class="info-l">R13 (Open)</div>
-                    <div class="info-v" id="R13">-</div>
-                </div>
-                <div class="info">
-                    <div class="info-l">R17 (Bottom)</div>
-                    <div class="info-v" id="R17">-</div>
-                </div>
-            </div>
-            <table style="margin-top: 6px;">
-                <tr>
-                    <th>Level</th>
-                    <th>Value</th>
-                </tr>
-                <tr>
-                    <td class="gold">R9 (+4 ranges)</td>
-                    <td id="L_R9">-</td>
-                </tr>
-                <tr>
-                    <td class="gold">R10 (+3 ranges)</td>
-                    <td id="L_R10">-</td>
-                </tr>
-                <tr>
-                    <td class="gold">R11 (+2 ranges)</td>
-                    <td id="L_R11">-</td>
-                </tr>
-                <tr>
-                    <td class="gold">R12 (+1 range)</td>
-                    <td id="L_R12">-</td>
-                </tr>
-                <tr>
-                    <td class="blue-mid">R13 (Today's Open)</td>
-                    <td id="L_R13">-</td>
-                </tr>
-                <tr>
-                    <td class="green">R14 (-1 range)</td>
-                    <td id="L_R14">-</td>
-                </tr>
-                <tr>
-                    <td class="green">R15 (-2 ranges)</td>
-                    <td id="L_R15">-</td>
-                </tr>
-                <tr>
-                    <td class="green">R16 (-3 ranges)</td>
-                    <td id="L_R16">-</td>
-                </tr>
-                <tr>
-                    <td class="green">R17 (-4 ranges)</td>
-                    <td id="L_R17">-</td>
-                </tr>
-            </table>
-        </div>
+<!-- ===== 1. MARKET ANALYSIS ===== -->
+<div class="card">
+<div class="title">📍 Market Analysis (Today's Range)</div>
+<div class="g3">
+<div><label>Yest. High (Q4)</label><input type="number" id="Q4" value="0" step="0.01"></div>
+<div><label>Yest. Low (Q5)</label><input type="number" id="Q5" value="0" step="0.01"></div>
+<div><label>Today's Open (Q13)</label><input type="number" id="Q13" value="0" step="0.01"></div>
+</div>
+<div class="g4" style="margin-top: 6px;">
+<div class="info"><div class="info-l">Today's Range (Q7)</div><div class="info-v" id="Q7">-</div></div>
+<div class="info"><div class="info-l">R9 (Top)</div><div class="info-v" id="R9">-</div></div>
+<div class="info"><div class="info-l">R13 (Open)</div><div class="info-v" id="R13">-</div></div>
+<div class="info"><div class="info-l">R17 (Bottom)</div><div class="info-v" id="R17">-</div></div>
+</div>
+<table style="margin-top: 6px;">
+<tr><th>Level</th><th>Value</th></tr>
+<tr><td class="gold">R9 (+4 ranges)</td><td id="L_R9">-</td></tr>
+<tr><td class="gold">R10 (+3 ranges)</td><td id="L_R10">-</td></tr>
+<tr><td class="gold">R11 (+2 ranges)</td><td id="L_R11">-</td></tr>
+<tr><td class="gold">R12 (+1 range)</td><td id="L_R12">-</td></tr>
+<tr><td class="blue-mid">R13 (Today's Open)</td><td id="L_R13">-</td></tr>
+<tr><td class="green">R14 (-1 range)</td><td id="L_R14">-</td></tr>
+<tr><td class="green">R15 (-2 ranges)</td><td id="L_R15">-</td></tr>
+<tr><td class="green">R16 (-3 ranges)</td><td id="L_R16">-</td></tr>
+<tr><td class="green">R17 (-4 ranges)</td><td id="L_R17">-</td></tr>
+</table>
+</div>
 
-        <!-- ===== 2. MATCHMAKING ===== -->
-        <div class="card">
-            <div class="title">📊 Matchmaking Analysis</div>
-            <div class="g2">
-                <div><label>CE Strike (B2)</label><input type="number" id="B2" value="23700" step="50"></div>
-                <div><label>PE Strike (D2)</label><input type="number" id="D2" value="23750" step="50"></div>
-            </div>
-            <h3 style="font-size: 10px; margin-top: 6px; color: #27ae60;">CE Data (B4-B7)</h3>
-            <div class="g4">
-                <div><label>Open</label><input type="number" id="B4" value="0" step="0.01"></div>
-                <div><label>High</label><input type="number" id="B5" value="0" step="0.01"></div>
-                <div><label>Low</label><input type="number" id="B6" value="0" step="0.01"></div>
-                <div><label>Close</label><input type="number" id="B7" value="0" step="0.01"></div>
-            </div>
-            <h3 style="font-size: 10px; margin-top: 6px; color: #e74c3c;">PE Data (D4-D7)</h3>
-            <div class="g4">
-                <div><label>Open</label><input type="number" id="D4" value="0" step="0.01"></div>
-                <div><label>High</label><input type="number" id="D5" value="0" step="0.01"></div>
-                <div><label>Low</label><input type="number" id="D6" value="0" step="0.01"></div>
-                <div><label>Close</label><input type="number" id="D7" value="0" step="0.01"></div>
-            </div>
-            <table>
-                <tr>
-                    <th></th>
-                    <th>CE</th>
-                    <th>Sig (C)</th>
-                    <th></th>
-                    <th>PE</th>
-                    <th>Sig (E)</th>
-                </tr>
-                <tr>
-                    <td>OPEN</td>
-                    <td id="d_B4">-</td>
-                    <td id="C4" class="no">No</td>
-                    <td></td>
-                    <td id="d_D4">-</td>
-                    <td id="E4" class="no">No</td>
-                </tr>
-                <tr>
-                    <td>HIGH</td>
-                    <td id="d_B5">-</td>
-                    <td id="C5" class="no">No</td>
-                    <td></td>
-                    <td id="d_D5">-</td>
-                    <td id="E5" class="no">No</td>
-                </tr>
-                <tr>
-                    <td>LOW</td>
-                    <td id="d_B6">-</td>
-                    <td id="C6" class="no">No</td>
-                    <td></td>
-                    <td id="d_D6">-</td>
-                    <td id="E6" class="no">No</td>
-                </tr>
-                <tr>
-                    <td>CLOSE</td>
-                    <td id="d_B7">-</td>
-                    <td id="C7" class="no">No</td>
-                    <td></td>
-                    <td id="d_D7">-</td>
-                    <td id="E7" class="no">No</td>
-                </tr>
-            </table>
-        </div>
+<!-- ===== 2. MATCHMAKING ===== -->
+<div class="card">
+<div class="title">📊 Matchmaking Analysis</div>
+<div class="g2">
+<div><label>CE Strike (B2)</label><input type="number" id="B2" value="23700" step="50"></div>
+<div><label>PE Strike (D2)</label><input type="number" id="D2" value="23750" step="50"></div>
+</div>
+<h3 style="font-size: 10px; margin-top: 6px; color: #27ae60;">CE Data (B4-B7)</h3>
+<div class="g4">
+<div><label>Open</label><input type="number" id="B4" value="0" step="0.01"></div>
+<div><label>High</label><input type="number" id="B5" value="0" step="0.01"></div>
+<div><label>Low</label><input type="number" id="B6" value="0" step="0.01"></div>
+<div><label>Close</label><input type="number" id="B7" value="0" step="0.01"></div>
+</div>
+<h3 style="font-size: 10px; margin-top: 6px; color: #e74c3c;">PE Data (D4-D7)</h3>
+<div class="g4">
+<div><label>Open</label><input type="number" id="D4" value="0" step="0.01"></div>
+<div><label>High</label><input type="number" id="D5" value="0" step="0.01"></div>
+<div><label>Low</label><input type="number" id="D6" value="0" step="0.01"></div>
+<div><label>Close</label><input type="number" id="D7" value="0" step="0.01"></div>
+</div>
+<table>
+<tr><th></th><th>CE</th><th>Sig (C)</th><th></th><th>PE</th><th>Sig (E)</th></tr>
+<tr><td>OPEN</td><td id="d_B4">-</td><td id="C4" class="no">No</td><td></td><td id="d_D4">-</td><td id="E4" class="no">No</td></tr>
+<tr><td>HIGH</td><td id="d_B5">-</td><td id="C5" class="no">No</td><td></td><td id="d_D5">-</td><td id="E5" class="no">No</td></tr>
+<tr><td>LOW</td><td id="d_B6">-</td><td id="C6" class="no">No</td><td></td><td id="d_D6">-</td><td id="E6" class="no">No</td></tr>
+<tr><td>CLOSE</td><td id="d_B7">-</td><td id="C7" class="no">No</td><td></td><td id="d_D7">-</td><td id="E7" class="no">No</td></tr>
+</table>
+</div>
 
-        <!-- ===== 3. OTM/ITM ANALYSIS (with AVG column H) ===== -->
-        <div class="card section-full">
-            <div class="title">🎯 OTM & ITM Analysis (with AVG MID POINT)</div>
-            <table style="font-size: 10px;">
-                <tr style="background: #34495e;">
-                    <th>AVG</th>
-                    <th>H</th>
-                    <th>OTM Strike (I)</th>
-                    <th>Close (J)</th>
-                    <th>Low (K)</th>
-                    <th>L</th>
-                    <th>ITM Strike (M)</th>
-                    <th>Close (N)</th>
-                </tr>
-                <!-- Row 3 -->
-                <tr>
-                    <td class="gold" id="G3_row">-</td>
-                    <td>MID POINT</td>
-                    <td id="I3" class="ro">-</td>
-                    <td><input type="number" id="J3" class="ui small-input" value="0" step="0.01"></td>
-                    <td><input type="number" id="K3" class="ui small-input" value="0" step="0.01"></td>
-                    <td></td>
-                    <td id="M3" class="ro">-</td>
-                    <td><input type="number" id="N3" class="ui small-input" value="0" step="0.01"></td>
-                </tr>
-                <tr>
-                    <td id="G4_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td id="I4" class="ro">-</td>
-                    <td><input type="number" id="J4" class="ui small-input" value="0" step="0.01"></td>
-                    <td><input type="number" id="K4" class="ui small-input" value="0" step="0.01"></td>
-                    <td></td>
-                    <td id="M4" class="ro">-</td>
-                    <td><input type="number" id="N4" class="ui small-input" value="0" step="0.01"></td>
-                </tr>
-                <tr>
-                    <td class="gold" id="G5_row">-</td>
-                    <td></td>
-                    <td>BOUNDRY</td>
-                    <td id="J5" class="bnd">-</td>
-                    <td></td>
-                    <td>TARGET</td>
-                    <td></td>
-                    <td id="N5" class="tgt">-</td>
-                </tr>
-                <tr>
-                    <td id="G6_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td></td>
-                    <td id="J6" class="mid">-</td>
-                    <td></td>
-                    <td>MID POINT</td>
-                    <td></td>
-                    <td id="N6" class="mid">-</td>
-                </tr>
-                <tr>
-                    <td class="gold" id="G7_row">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- Row 8 -->
-                <tr>
-                    <td id="G8_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td id="I8" class="ro">-</td>
-                    <td><input type="number" id="J8" class="ui small-input" value="0" step="0.01"></td>
-                    <td><input type="number" id="K8" class="ui small-input" value="0" step="0.01"></td>
-                    <td></td>
-                    <td id="M8" class="ro">-</td>
-                    <td><input type="number" id="N8" class="ui small-input" value="0" step="0.01"></td>
-                </tr>
-                <tr>
-                    <td class="gold" id="G9_row">-</td>
-                    <td id="H9" class="mid">-</td>
-                    <td id="I9" class="ro">-</td>
-                    <td><input type="number" id="J9" class="ui small-input" value="0" step="0.01"></td>
-                    <td><input type="number" id="K9" class="ui small-input" value="0" step="0.01"></td>
-                    <td></td>
-                    <td id="M9" class="ro">-</td>
-                    <td><input type="number" id="N9" class="ui small-input" value="0" step="0.01"></td>
-                </tr>
-                <tr>
-                    <td id="G10_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td>BOUNDRY</td>
-                    <td id="J10" class="bnd">-</td>
-                    <td></td>
-                    <td>TARGET</td>
-                    <td></td>
-                    <td id="N10" class="tgt">-</td>
-                </tr>
-                <tr>
-                    <td class="blue-mid" id="G11_row">-</td>
-                    <td></td>
-                    <td></td>
-                    <td id="J11" class="mid">-</td>
-                    <td></td>
-                    <td>MID POINT</td>
-                    <td></td>
-                    <td id="N11" class="mid">-</td>
-                </tr>
-                <tr>
-                    <td id="G12_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <!-- Row 13 -->
-                <tr>
-                    <td class="green" id="G13_row">-</td>
-                    <td id="H13" class="mid">-</td>
-                    <td id="I13" class="ro">-</td>
-                    <td><input type="number" id="J13" class="ui small-input" value="0" step="0.01"></td>
-                    <td><input type="number" id="K13" class="ui small-input" value="0" step="0.01"></td>
-                    <td></td>
-                    <td id="M13" class="ro">-</td>
-                    <td><input type="number" id="N13" class="ui small-input" value="0" step="0.01"></td>
-                </tr>
-                <tr>
-                    <td id="G14_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td id="I14" class="ro">-</td>
-                    <td><input type="number" id="J14" class="ui small-input" value="0" step="0.01"></td>
-                    <td><input type="number" id="K14" class="ui small-input" value="0" step="0.01"></td>
-                    <td></td>
-                    <td id="M14" class="ro">-</td>
-                    <td><input type="number" id="N14" class="ui small-input" value="0" step="0.01"></td>
-                </tr>
-                <tr>
-                    <td class="green" id="G15_row">-</td>
-                    <td></td>
-                    <td>BOUNDRY</td>
-                    <td id="J15" class="bnd">-</td>
-                    <td></td>
-                    <td>TARGET</td>
-                    <td></td>
-                    <td id="N15" class="tgt">-</td>
-                </tr>
-                <tr>
-                    <td id="G16_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td class="green" id="G17_row">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td id="G18_row" style="background:#fff">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td class="green" id="G19_row">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </table>
-        </div>
+<!-- ===== 3. OTM/ITM ANALYSIS (with AVG column H) ===== -->
+<div class="card section-full">
+<div class="title">🎯 OTM & ITM Analysis (with AVG MID POINT)</div>
+<table style="font-size: 10px;">
+<tr style="background: #34495e;">
+<th>AVG</th><th>H</th><th>OTM Strike (I)</th><th>Close (J)</th><th>Low (K)</th><th>L</th><th>ITM Strike (M)</th><th>Close (N)</th>
+</tr>
+<!-- Row 3 -->
+<tr><td class="gold" id="G3_row">-</td><td>MID POINT</td><td id="I3" class="ro">-</td><td><input type="number" id="J3" class="ui small-input" value="0" step="0.01"></td><td><input type="number" id="K3" class="ui small-input" value="0" step="0.01"></td><td></td><td id="M3" class="ro">-</td><td><input type="number" id="N3" class="ui small-input" value="0" step="0.01"></td></tr>
+<tr><td id="G4_row" style="background:#fff">-</td><td></td><td id="I4" class="ro">-</td><td><input type="number" id="J4" class="ui small-input" value="0" step="0.01"></td><td><input type="number" id="K4" class="ui small-input" value="0" step="0.01"></td><td></td><td id="M4" class="ro">-</td><td><input type="number" id="N4" class="ui small-input" value="0" step="0.01"></td></tr>
+<tr><td class="gold" id="G5_row">-</td><td></td><td>BOUNDRY</td><td id="J5" class="bnd">-</td><td></td><td>TARGET</td><td></td><td id="N5" class="tgt">-</td></tr>
+<tr><td id="G6_row" style="background:#fff">-</td><td></td><td></td><td id="J6" class="mid">-</td><td></td><td>MID POINT</td><td></td><td id="N6" class="mid">-</td></tr>
+<tr><td class="gold" id="G7_row">-</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<!-- Row 8 -->
+<tr><td id="G8_row" style="background:#fff">-</td><td></td><td id="I8" class="ro">-</td><td><input type="number" id="J8" class="ui small-input" value="0" step="0.01"></td><td><input type="number" id="K8" class="ui small-input" value="0" step="0.01"></td><td></td><td id="M8" class="ro">-</td><td><input type="number" id="N8" class="ui small-input" value="0" step="0.01"></td></tr>
+<tr><td class="gold" id="G9_row">-</td><td id="H9" class="mid">-</td><td id="I9" class="ro">-</td><td><input type="number" id="J9" class="ui small-input" value="0" step="0.01"></td><td><input type="number" id="K9" class="ui small-input" value="0" step="0.01"></td><td></td><td id="M9" class="ro">-</td><td><input type="number" id="N9" class="ui small-input" value="0" step="0.01"></td></tr>
+<tr><td id="G10_row" style="background:#fff">-</td><td></td><td>BOUNDRY</td><td id="J10" class="bnd">-</td><td></td><td>TARGET</td><td></td><td id="N10" class="tgt">-</td></tr>
+<tr><td class="blue-mid" id="G11_row">-</td><td></td><td></td><td id="J11" class="mid">-</td><td></td><td>MID POINT</td><td></td><td id="N11" class="mid">-</td></tr>
+<tr><td id="G12_row" style="background:#fff">-</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<!-- Row 13 -->
+<tr><td class="green" id="G13_row">-</td><td id="H13" class="mid">-</td><td id="I13" class="ro">-</td><td><input type="number" id="J13" class="ui small-input" value="0" step="0.01"></td><td><input type="number" id="K13" class="ui small-input" value="0" step="0.01"></td><td></td><td id="M13" class="ro">-</td><td><input type="number" id="N13" class="ui small-input" value="0" step="0.01"></td></tr>
+<tr><td id="G14_row" style="background:#fff">-</td><td></td><td id="I14" class="ro">-</td><td><input type="number" id="J14" class="ui small-input" value="0" step="0.01"></td><td><input type="number" id="K14" class="ui small-input" value="0" step="0.01"></td><td></td><td id="M14" class="ro">-</td><td><input type="number" id="N14" class="ui small-input" value="0" step="0.01"></td></tr>
+<tr><td class="green" id="G15_row">-</td><td></td><td>BOUNDRY</td><td id="J15" class="bnd">-</td><td></td><td>TARGET</td><td></td><td id="N15" class="tgt">-</td></tr>
+<tr><td id="G16_row" style="background:#fff">-</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="green" id="G17_row">-</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td id="G18_row" style="background:#fff">-</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="green" id="G19_row">-</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+</div>
 
-        <!-- ===== 4. EXPIRY STRATEGY ===== -->
-        <div class="card">
-            <div class="title">📈 Expiry Strategy (26.11%)</div>
-            <table>
-                <tr style="background:#0099ff;">
-                    <th style="color:white;">EXPIRY</th>
-                    <th style="color:white;">CALL (J)</th>
-                    <th style="color:white;">PUT (K)</th>
-                </tr>
-                <tr>
-                    <td style="background:#fffacd;font-weight:700;">ATM</td>
-                    <td id="J21" class="ro">-</td>
-                    <td id="K21" class="ro">-</td>
-                </tr>
-                <tr>
-                    <td style="background:#fffacd;font-weight:700;">OTM 1</td>
-                    <td id="J22" class="ro">-</td>
-                    <td id="K22" class="ro">-</td>
-                </tr>
-                <tr>
-                    <td style="background:#fffacd;font-weight:700;">OTM 2</td>
-                    <td id="J23" class="ro">-</td>
-                    <td id="K23" class="ro">-</td>
-                </tr>
-                <tr>
-                    <td style="background:#fffacd;font-weight:700;">OTM 3</td>
-                    <td id="J24" class="ro">-</td>
-                    <td id="K24" class="ro">-</td>
-                </tr>
-            </table>
-        </div>
+<!-- ===== 4. EXPIRY STRATEGY ===== -->
+<div class="card">
+<div class="title">📈 Expiry Strategy (26.11%)</div>
+<table>
+<tr style="background:#0099ff;"><th style="color:white;">EXPIRY</th><th style="color:white;">CALL (J)</th><th style="color:white;">PUT (K)</th></tr>
+<tr><td style="background:#fffacd;font-weight:700;">ATM</td><td id="J21" class="ro">-</td><td id="K21" class="ro">-</td></tr>
+<tr><td style="background:#fffacd;font-weight:700;">OTM 1</td><td id="J22" class="ro">-</td><td id="K22" class="ro">-</td></tr>
+<tr><td style="background:#fffacd;font-weight:700;">OTM 2</td><td id="J23" class="ro">-</td><td id="K23" class="ro">-</td></tr>
+<tr><td style="background:#fffacd;font-weight:700;">OTM 3</td><td id="J24" class="ro">-</td><td id="K24" class="ro">-</td></tr>
+</table>
+</div>
 
-        <!-- ===== 5. AVG DERIVED LEVELS (Separate CE/PE) ===== -->
-        <div class="card">
-            <div class="title">📈 AVG Derived Levels - CE (AR) & PE (AT) Separate</div>
-            <div style="font-size: 9px; margin-bottom: 4px; color: #666;">AR11 = B7 (CE Close), AT11 = D7 (PE Close),
-                G11 = (AR11+AT11)/2</div>
-            <div style="overflow-y: auto; max-height: 280px; border: 1px solid #ddd;">
-                <table style="font-size: 9px;">
-                    <tr>
-                        <th>CE (AR)</th>
-                        <th>Level</th>
-                        <th>PE (AT)</th>
-                    </tr>
-                    <tr>
-                        <td id="AR3" class="gold">-</td>
-                        <td>L1 +52.2%</td>
-                        <td id="AT3" class="gold">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR4" style="background:#fff">-</td>
-                        <td>L2 +45.675%</td>
-                        <td id="AT4" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR5" class="gold">-</td>
-                        <td>L3 +39.15%</td>
-                        <td id="AT5" class="gold">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR6" style="background:#fff">-</td>
-                        <td>L4 +32.625%</td>
-                        <td id="AT6" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR7" class="gold">-</td>
-                        <td>L5 +26.11%</td>
-                        <td id="AT7" class="gold">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR8" style="background:#fff">-</td>
-                        <td>L6 +19.575%</td>
-                        <td id="AT8" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR9" class="gold">-</td>
-                        <td>L7 +13.05%</td>
-                        <td id="AT9" class="gold">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR10" style="background:#fff">-</td>
-                        <td>L8 +6.525%</td>
-                        <td id="AT10" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR11" class="blue-mid">-</td>
-                        <td class="blue-mid">MIDPOINT 0%</td>
-                        <td id="AT11" class="blue-mid">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR12" style="background:#fff">-</td>
-                        <td>L9 -6.525%</td>
-                        <td id="AT12" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR13" class="green">-</td>
-                        <td>L10 -13.05%</td>
-                        <td id="AT13" class="green">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR14" style="background:#fff">-</td>
-                        <td>L11 -19.575%</td>
-                        <td id="AT14" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR15" class="green">-</td>
-                        <td>L12 -26.11%</td>
-                        <td id="AT15" class="green">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR16" style="background:#fff">-</td>
-                        <td>L13 -32.625%</td>
-                        <td id="AT16" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR17" class="green">-</td>
-                        <td>L14 -39.15%</td>
-                        <td id="AT17" class="green">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR18" style="background:#fff">-</td>
-                        <td>L15 -45.675%</td>
-                        <td id="AT18" style="background:#fff">-</td>
-                    </tr>
-                    <tr>
-                        <td id="AR19" class="green">-</td>
-                        <td>L16 -52.2%</td>
-                        <td id="AT19" class="green">-</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+<!-- ===== 5. AVG DERIVED LEVELS (Separate CE/PE) ===== -->
+<div class="card">
+<div class="title">📈 AVG Derived Levels - CE (AR) & PE (AT) Separate</div>
+<div style="font-size: 9px; margin-bottom: 4px; color: #666;">AR11 = B7 (CE Close), AT11 = D7 (PE Close), G11 = (AR11+AT11)/2</div>
+<div style="overflow-y: auto; max-height: 280px; border: 1px solid #ddd;">
+<table style="font-size: 9px;">
+<tr><th>CE (AR)</th><th>Level</th><th>PE (AT)</th></tr>
+<tr><td id="AR3" class="gold">-</td><td>L1 +52.2%</td><td id="AT3" class="gold">-</td></tr>
+<tr><td id="AR4" style="background:#fff">-</td><td>L2 +45.675%</td><td id="AT4" style="background:#fff">-</td></tr>
+<tr><td id="AR5" class="gold">-</td><td>L3 +39.15%</td><td id="AT5" class="gold">-</td></tr>
+<tr><td id="AR6" style="background:#fff">-</td><td>L4 +32.625%</td><td id="AT6" style="background:#fff">-</td></tr>
+<tr><td id="AR7" class="gold">-</td><td>L5 +26.11%</td><td id="AT7" class="gold">-</td></tr>
+<tr><td id="AR8" style="background:#fff">-</td><td>L6 +19.575%</td><td id="AT8" style="background:#fff">-</td></tr>
+<tr><td id="AR9" class="gold">-</td><td>L7 +13.05%</td><td id="AT9" class="gold">-</td></tr>
+<tr><td id="AR10" style="background:#fff">-</td><td>L8 +6.525%</td><td id="AT10" style="background:#fff">-</td></tr>
+<tr><td id="AR11" class="blue-mid">-</td><td class="blue-mid">MIDPOINT 0%</td><td id="AT11" class="blue-mid">-</td></tr>
+<tr><td id="AR12" style="background:#fff">-</td><td>L9 -6.525%</td><td id="AT12" style="background:#fff">-</td></tr>
+<tr><td id="AR13" class="green">-</td><td>L10 -13.05%</td><td id="AT13" class="green">-</td></tr>
+<tr><td id="AR14" style="background:#fff">-</td><td>L11 -19.575%</td><td id="AT14" style="background:#fff">-</td></tr>
+<tr><td id="AR15" class="green">-</td><td>L12 -26.11%</td><td id="AT15" class="green">-</td></tr>
+<tr><td id="AR16" style="background:#fff">-</td><td>L13 -32.625%</td><td id="AT16" style="background:#fff">-</td></tr>
+<tr><td id="AR17" class="green">-</td><td>L14 -39.15%</td><td id="AT17" class="green">-</td></tr>
+<tr><td id="AR18" style="background:#fff">-</td><td>L15 -45.675%</td><td id="AT18" style="background:#fff">-</td></tr>
+<tr><td id="AR19" class="green">-</td><td>L16 -52.2%</td><td id="AT19" class="green">-</td></tr>
+</table>
+</div>
+</div>
 
-    </div>
+</div>
 
-    <script>
-        // Get all elements safely
-        function $(id) { return document.getElementById(id); }
-        function val(id) { return parseFloat($(id)?.value) || 0; }
-        function set(id, v) { const el = $(id); if (el) el.textContent = (typeof v === 'number' ? v.toFixed(2) : v); }
-        function setSig(id, v) { const el = $(id); if (el) { el.textContent = v; el.className = v === 'Yes' ? 'yes' : 'no'; } }
-        function isWithin(v, a, b) { return v >= Math.min(a, b) && v <= Math.max(a, b); }
+<script>
+// Get all elements safely
+function $(id) { return document.getElementById(id); }
+function val(id) { return parseFloat($(id)?.value) || 0; }
+function set(id, v) { const el = $(id); if (el) el.textContent = (typeof v === 'number' ? v.toFixed(2) : v); }
+function setSig(id, v) { const el = $(id); if (el) { el.textContent = v; el.className = v === 'Yes' ? 'yes' : 'no'; } }
+function isWithin(v, a, b) { return v >= Math.min(a, b) && v <= Math.max(a, b); }
 
-        // All input IDs
-        const inputIds = ['Q4', 'Q5', 'Q13', 'B2', 'D2', 'B4', 'B5', 'B6', 'B7', 'D4', 'D5', 'D6', 'D7',
-            'J3', 'K3', 'J4', 'K4', 'J8', 'K8', 'J9', 'K9', 'J13', 'K13', 'J14', 'K14',
-            'N3', 'N4', 'N8', 'N9', 'N13', 'N14'];
+// All input IDs
+const inputIds = ['Q4', 'Q5', 'Q13', 'B2', 'D2', 'B4', 'B5', 'B6', 'B7', 'D4', 'D5', 'D6', 'D7',
+    'J3', 'K3', 'J4', 'K4', 'J8', 'K8', 'J9', 'K9', 'J13', 'K13', 'J14', 'K14',
+    'N3', 'N4', 'N8', 'N9', 'N13', 'N14'];
 
-        function calc() {
-            // ===== Read all inputs =====
-            const Q4 = val('Q4'), Q5 = val('Q5'), Q13 = val('Q13');
-            const B2 = val('B2'), D2 = val('D2');
-            const B4 = val('B4'), B5 = val('B5'), B6 = val('B6'), B7 = val('B7');
-            const D4 = val('D4'), D5 = val('D5'), D6 = val('D6'), D7 = val('D7');
-            const J3 = val('J3'), K3 = val('K3'), J4 = val('J4'), K4 = val('K4');
-            const J8 = val('J8'), K8 = val('K8'), J9 = val('J9'), K9 = val('K9');
-            const J13 = val('J13'), K13 = val('K13'), J14 = val('J14'), K14 = val('K14');
-            const N3 = val('N3'), N4 = val('N4'), N8 = val('N8'), N9 = val('N9'), N13 = val('N13'), N14 = val('N14');
+function calc() {
+    // ===== Read all inputs =====
+    const Q4 = val('Q4'), Q5 = val('Q5'), Q13 = val('Q13');
+    const B2 = val('B2'), D2 = val('D2');
+    const B4 = val('B4'), B5 = val('B5'), B6 = val('B6'), B7 = val('B7');
+    const D4 = val('D4'), D5 = val('D5'), D6 = val('D6'), D7 = val('D7');
+    const J3 = val('J3'), K3 = val('K3'), J4 = val('J4'), K4 = val('K4');
+    const J8 = val('J8'), K8 = val('K8'), J9 = val('J9'), K9 = val('K9');
+    const J13 = val('J13'), K13 = val('K13'), J14 = val('J14'), K14 = val('K14');
+    const N3 = val('N3'), N4 = val('N4'), N8 = val('N8'), N9 = val('N9'), N13 = val('N13'), N14 = val('N14');
 
-            // ===== 1. MARKET ANALYSIS =====
-            // Q7 = (Q4-Q5)*26.11%
-            const Q7 = (Q4 - Q5) * 0.2611;
-            set('Q7', Q7);
+    // ===== 1. MARKET ANALYSIS =====
+    // Q7 = (Q4-Q5)*26.11%
+    const Q7 = (Q4 - Q5) * 0.2611;
+    set('Q7', Q7);
+    
+    // R13 = Q13 (Today's Open)
+    // R12 = R13 + Q7, R11 = R12 + Q7, R10 = R11 + Q7, R9 = R10 + Q7
+    // R14 = R13 - Q7, R15 = R14 - Q7, R16 = R15 - Q7, R17 = R16 - Q7
+    const R13 = Q13;
+    const R12 = R13 + Q7, R11 = R12 + Q7, R10 = R11 + Q7, R9 = R10 + Q7;
+    const R14 = R13 - Q7, R15 = R14 - Q7, R16 = R15 - Q7, R17 = R16 - Q7;
+    
+    set('R9', R9); set('R13', R13); set('R17', R17);
+    set('L_R9', R9); set('L_R10', R10); set('L_R11', R11); set('L_R12', R12);
+    set('L_R13', R13);
+    set('L_R14', R14); set('L_R15', R15); set('L_R16', R16); set('L_R17', R17);
 
-            // R13 = Q13 (Today's Open)
-            // R12 = R13 + Q7, R11 = R12 + Q7, R10 = R11 + Q7, R9 = R10 + Q7
-            // R14 = R13 - Q7, R15 = R14 - Q7, R16 = R15 - Q7, R17 = R16 - Q7
-            const R13 = Q13;
-            const R12 = R13 + Q7, R11 = R12 + Q7, R10 = R11 + Q7, R9 = R10 + Q7;
-            const R14 = R13 - Q7, R15 = R14 - Q7, R16 = R15 - Q7, R17 = R16 - Q7;
+    // ===== 2. MATCHMAKING =====
+    set('d_B4', B4); set('d_B5', B5); set('d_B6', B6); set('d_B7', B7);
+    set('d_D4', D4); set('d_D5', D5); set('d_D6', D6); set('d_D7', D7);
+    
+    // C: B >= MIN(D5,D6) AND B <= MAX(D5,D6)
+    setSig('C4', isWithin(B4, D5, D6) ? 'Yes' : 'No');
+    setSig('C5', isWithin(B5, D5, D6) ? 'Yes' : 'No');
+    setSig('C6', isWithin(B6, D5, D6) ? 'Yes' : 'No');
+    setSig('C7', isWithin(B7, D5, D6) ? 'Yes' : 'No');
+    // E: D >= MIN(B5,B6) AND D <= MAX(B5,B6)
+    setSig('E4', isWithin(D4, B5, B6) ? 'Yes' : 'No');
+    setSig('E5', isWithin(D5, B5, B6) ? 'Yes' : 'No');
+    setSig('E6', isWithin(D6, B5, B6) ? 'Yes' : 'No');
+    setSig('E7', isWithin(D7, B5, B6) ? 'Yes' : 'No');
 
-            set('R9', R9); set('R13', R13); set('R17', R17);
-            set('L_R9', R9); set('L_R10', R10); set('L_R11', R11); set('L_R12', R12);
-            set('L_R13', R13);
-            set('L_R14', R14); set('L_R15', R15); set('L_R16', R16); set('L_R17', R17);
+    // ===== 3. OTM/ITM STRIKES =====
+    set('I3', (B2 + 50).toFixed(0)); set('I4', (D2 - 50).toFixed(0));
+    set('I8', (B2 + 100).toFixed(0)); set('I9', (D2 - 100).toFixed(0));
+    set('I13', (B2 + 150).toFixed(0)); set('I14', (D2 - 150).toFixed(0));
+    set('M3', (B2 - 50).toFixed(0)); set('M4', (D2 + 50).toFixed(0));
+    set('M8', (B2 - 100).toFixed(0)); set('M9', (D2 + 100).toFixed(0));
+    set('M13', (B2 - 150).toFixed(0)); set('M14', (D2 + 150).toFixed(0));
 
-            // ===== 2. MATCHMAKING =====
-            set('d_B4', B4); set('d_B5', B5); set('d_B6', B6); set('d_B7', B7);
-            set('d_D4', D4); set('d_D5', D5); set('d_D6', D6); set('d_D7', D7);
+    // OTM/ITM Boundaries and Targets
+    const J5 = (J3 + J4) / 2;
+    const J10 = (J8 + J9) / 2;
+    const J6 = (J5 + J10) / 2;
+    const J15 = (J13 + J14) / 2;
+    const J11 = (J10 + J15) / 2;
+    const N5 = (N3 + N4) / 2;
+    const N10 = (N8 + N9) / 2;
+    const N6 = (N5 + N10) / 2;
+    const N15 = (N13 + N14) / 2;
+    const N11 = (N10 + N15) / 2;
+    
+    set('J5', J5); set('J6', J6); set('J10', J10); set('J11', J11); set('J15', J15);
+    set('N5', N5); set('N6', N6); set('N10', N10); set('N11', N11); set('N15', N15);
 
-            // C: B >= MIN(D5,D6) AND B <= MAX(D5,D6)
-            setSig('C4', isWithin(B4, D5, D6) ? 'Yes' : 'No');
-            setSig('C5', isWithin(B5, D5, D6) ? 'Yes' : 'No');
-            setSig('C6', isWithin(B6, D5, D6) ? 'Yes' : 'No');
-            setSig('C7', isWithin(B7, D5, D6) ? 'Yes' : 'No');
-            // E: D >= MIN(B5,B6) AND D <= MAX(B5,B6)
-            setSig('E4', isWithin(D4, B5, B6) ? 'Yes' : 'No');
-            setSig('E5', isWithin(D5, B5, B6) ? 'Yes' : 'No');
-            setSig('E6', isWithin(D6, B5, B6) ? 'Yes' : 'No');
-            setSig('E7', isWithin(D7, B5, B6) ? 'Yes' : 'No');
+    // ===== 4. EXPIRY STRATEGY =====
+    set('J21', B6 * 0.2611); set('K21', D6 * 0.2611);
+    set('J22', K3 * 0.2611); set('K22', K4 * 0.2611);
+    set('J23', K8 * 0.2611); set('K23', K9 * 0.2611);
+    set('J24', K13 * 0.2611); set('K24', K14 * 0.2611);
 
-            // ===== 3. OTM/ITM STRIKES =====
-            set('I3', (B2 + 50).toFixed(0)); set('I4', (D2 - 50).toFixed(0));
-            set('I8', (B2 + 100).toFixed(0)); set('I9', (D2 - 100).toFixed(0));
-            set('I13', (B2 + 150).toFixed(0)); set('I14', (D2 - 150).toFixed(0));
-            set('M3', (B2 - 50).toFixed(0)); set('M4', (D2 + 50).toFixed(0));
-            set('M8', (B2 - 100).toFixed(0)); set('M9', (D2 + 100).toFixed(0));
-            set('M13', (B2 - 150).toFixed(0)); set('M14', (D2 + 150).toFixed(0));
+    // ===== 5. AVG DERIVED LEVELS =====
+    // AR11 = B7, AT11 = D7, G11 = (AR11+AT11)/2
+    const AR11 = B7;
+    const AT11 = D7;
+    const G11 = (AR11 + AT11) / 2;
+    
+    // Percentages: [G3=+52.2%, G4=+45.675%, G5=+39.15%, G6=+32.625%, G7=+26.11%, G8=+19.575%, G9=+13.05%, G10=+6.525%]
+    // G11=0%, G12=-6.525%, G13=-13.05%, G14=-19.575%, G15=-26.11%, G16=-32.625%, G17=-39.15%, G18=-45.675%, G19=-52.2%
+    const pcts = [0.522, 0.45675, 0.3915, 0.32625, 0.2611, 0.19575, 0.1305, 0.06525, 0, -0.06525, -0.1305, -0.19575, -0.2611, -0.32625, -0.3915, -0.45675, -0.522];
+    
+    // AR column (CE) uses AR11
+    // AT column (PE) uses AT11
+    // G column (AVG) uses G11
+    for (let i = 0; i < 17; i++) {
+        const row = 3 + i;
+        const p = pcts[i];
+        // CE column (AR)
+        const arVal = AR11 * (1 + p);
+        set(`AR${row}`, arVal);
+        // PE column (AT)
+        const atVal = AT11 * (1 + p);
+        set(`AT${row}`, atVal);
+        // AVG column (G in OTM/ITM table)
+        const gVal = G11 * (1 + p);
+        set(`G${row}_row`, gVal);
+    }
 
-            // OTM/ITM Boundaries and Targets
-            const J5 = (J3 + J4) / 2;
-            const J10 = (J8 + J9) / 2;
-            const J6 = (J5 + J10) / 2;
-            const J15 = (J13 + J14) / 2;
-            const J11 = (J10 + J15) / 2;
-            const N5 = (N3 + N4) / 2;
-            const N10 = (N8 + N9) / 2;
-            const N6 = (N5 + N10) / 2;
-            const N15 = (N13 + N14) / 2;
-            const N11 = (N10 + N15) / 2;
+    // H column MID POINTS in OTM/ITM
+    // H9 = (G11+N5)/2, H13 = (G11+J5)/2
+    set('H9', (G11 + N5) / 2);
+    set('H13', (G11 + J5) / 2);
+}
 
-            set('J5', J5); set('J6', J6); set('J10', J10); set('J11', J11); set('J15', J15);
-            set('N5', N5); set('N6', N6); set('N10', N10); set('N11', N11); set('N15', N15);
+// Attach listeners to ALL inputs
+inputIds.forEach(id => {
+    const el = $(id);
+    if (el) {
+        el.addEventListener('input', () => { calc(); autoSave(); });
+        el.addEventListener('change', () => { calc(); autoSave(); });
+    }
+});
 
-            // ===== 4. EXPIRY STRATEGY =====
-            set('J21', B6 * 0.2611); set('K21', D6 * 0.2611);
-            set('J22', K3 * 0.2611); set('K22', K4 * 0.2611);
-            set('J23', K8 * 0.2611); set('K23', K9 * 0.2611);
-            set('J24', K13 * 0.2611); set('K24', K14 * 0.2611);
+// ===== STORAGE FUNCTIONS =====
+const STORAGE_KEY = 'nifty_analyzer_data';
 
-            // ===== 5. AVG DERIVED LEVELS =====
-            // AR11 = B7, AT11 = D7, G11 = (AR11+AT11)/2
-            const AR11 = B7;
-            const AT11 = D7;
-            const G11 = (AR11 + AT11) / 2;
+function showStatus(msg, isError = false) {
+    const el = $('statusMsg');
+    if (el) {
+        el.textContent = msg;
+        el.style.color = isError ? '#ff6b6b' : '#fff';
+        setTimeout(() => { el.textContent = ''; }, 3000);
+    }
+}
 
-            // Percentages: [G3=+52.2%, G4=+45.675%, G5=+39.15%, G6=+32.625%, G7=+26.11%, G8=+19.575%, G9=+13.05%, G10=+6.525%]
-            // G11=0%, G12=-6.525%, G13=-13.05%, G14=-19.575%, G15=-26.11%, G16=-32.625%, G17=-39.15%, G18=-45.675%, G19=-52.2%
-            const pcts = [0.522, 0.45675, 0.3915, 0.32625, 0.2611, 0.19575, 0.1305, 0.06525, 0, -0.06525, -0.1305, -0.19575, -0.2611, -0.32625, -0.3915, -0.45675, -0.522];
+function getCurrentData() {
+    const data = {};
+    inputIds.forEach(id => {
+        const el = $(id);
+        if (el) data[id] = el.value;
+    });
+    data._timestamp = new Date().toISOString();
+    data._date = new Date().toLocaleDateString('en-IN');
+    return data;
+}
 
-            // AR column (CE) uses AR11
-            // AT column (PE) uses AT11
-            // G column (AVG) uses G11
-            for (let i = 0; i < 17; i++) {
-                const row = 3 + i;
-                const p = pcts[i];
-                // CE column (AR)
-                const arVal = AR11 * (1 + p);
-                set(`AR${row}`, arVal);
-                // PE column (AT)
-                const atVal = AT11 * (1 + p);
-                set(`AT${row}`, atVal);
-                // AVG column (G in OTM/ITM table)
-                const gVal = G11 * (1 + p);
-                set(`G${row}_row`, gVal);
-            }
+function autoSave() {
+    try {
+        localStorage.setItem(STORAGE_KEY + '_auto', JSON.stringify(getCurrentData()));
+    } catch(e) { /* ignore */ }
+}
 
-            // H column MID POINTS in OTM/ITM
-            // H9 = (G11+N5)/2, H13 = (G11+J5)/2
-            set('H9', (G11 + N5) / 2);
-            set('H13', (G11 + J5) / 2);
+function saveData() {
+    try {
+        const data = getCurrentData();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        
+        // Also save in history (last 30 days)
+        const history = JSON.parse(localStorage.getItem(STORAGE_KEY + '_history') || '[]');
+        history.unshift(data);
+        if (history.length > 30) history.length = 30;
+        localStorage.setItem(STORAGE_KEY + '_history', JSON.stringify(history));
+        
+        showStatus('✅ Saved successfully! (' + data._date + ')');
+    } catch(e) {
+        showStatus('❌ Save failed: ' + e.message, true);
+    }
+}
+
+function loadData() {
+    try {
+        // Try manual save first, then auto-save
+        let saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) saved = localStorage.getItem(STORAGE_KEY + '_auto');
+        
+        if (!saved) {
+            showStatus('⚠️ No saved data found', true);
+            return;
         }
-
-        // Attach listeners to ALL inputs
+        
+        const data = JSON.parse(saved);
         inputIds.forEach(id => {
             const el = $(id);
-            if (el) {
-                el.addEventListener('input', () => { calc(); autoSave(); });
-                el.addEventListener('change', () => { calc(); autoSave(); });
-            }
+            if (el && data[id] !== undefined) el.value = data[id];
         });
-
-        // ===== STORAGE FUNCTIONS =====
-        const STORAGE_KEY = 'nifty_analyzer_data';
-
-        function showStatus(msg, isError = false) {
-            const el = $('statusMsg');
-            if (el) {
-                el.textContent = msg;
-                el.style.color = isError ? '#ff6b6b' : '#fff';
-                setTimeout(() => { el.textContent = ''; }, 3000);
-            }
-        }
-
-        function getCurrentData() {
-            const data = {};
-            inputIds.forEach(id => {
-                const el = $(id);
-                if (el) data[id] = el.value;
-            });
-            data._timestamp = new Date().toISOString();
-            data._date = new Date().toLocaleDateString('en-IN');
-            return data;
-        }
-
-        function autoSave() {
-            try {
-                localStorage.setItem(STORAGE_KEY + '_auto', JSON.stringify(getCurrentData()));
-            } catch (e) { /* ignore */ }
-        }
-
-        function saveData() {
-            try {
-                const data = getCurrentData();
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
-                // Also save in history (last 30 days)
-                const history = JSON.parse(localStorage.getItem(STORAGE_KEY + '_history') || '[]');
-                history.unshift(data);
-                if (history.length > 30) history.length = 30;
-                localStorage.setItem(STORAGE_KEY + '_history', JSON.stringify(history));
-
-                showStatus('✅ Saved successfully! (' + data._date + ')');
-            } catch (e) {
-                showStatus('❌ Save failed: ' + e.message, true);
-            }
-        }
-
-        function loadData() {
-            try {
-                // Try manual save first, then auto-save
-                let saved = localStorage.getItem(STORAGE_KEY);
-                if (!saved) saved = localStorage.getItem(STORAGE_KEY + '_auto');
-
-                if (!saved) {
-                    showStatus('⚠️ No saved data found', true);
-                    return;
-                }
-
-                const data = JSON.parse(saved);
-                inputIds.forEach(id => {
-                    const el = $(id);
-                    if (el && data[id] !== undefined) el.value = data[id];
-                });
-                calc();
-                showStatus('✅ Loaded data from ' + (data._date || 'last session'));
-            } catch (e) {
-                showStatus('❌ Load failed: ' + e.message, true);
-            }
-        }
-
-        function clearData() {
-            if (!confirm('Clear all current values and saved data?')) return;
-            inputIds.forEach(id => {
-                const el = $(id);
-                if (el) {
-                    if (id === 'B2') el.value = 23700;
-                    else if (id === 'D2') el.value = 23750;
-                    else el.value = 0;
-                }
-            });
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem(STORAGE_KEY + '_auto');
-            calc();
-            showStatus('✅ Cleared');
-        }
-
-        function exportJSON() {
-            const data = getCurrentData();
-
-            // Also include all calculated values
-            const calculatedIds = ['Q7', 'L_R9', 'L_R10', 'L_R11', 'L_R12', 'L_R13', 'L_R14', 'L_R15', 'L_R16', 'L_R17',
-                'J5', 'J6', 'J10', 'J11', 'J15', 'N5', 'N6', 'N10', 'N11', 'N15',
-                'J21', 'K21', 'J22', 'K22', 'J23', 'K23', 'J24', 'K24',
-                'H9', 'H13'];
-
-            const calculated = {};
-            calculatedIds.forEach(id => {
-                const el = $(id);
-                if (el) calculated[id] = el.textContent;
-            });
-
-            // AVG levels
-            const avgLevels = {};
-            for (let r = 3; r <= 19; r++) {
-                avgLevels[`AR${r}`] = $(`AR${r}`)?.textContent;
-                avgLevels[`AT${r}`] = $(`AT${r}`)?.textContent;
-                avgLevels[`G${r}`] = $(`G${r}_row`)?.textContent;
-            }
-
-            const exportData = {
-                inputs: data,
-                calculated: calculated,
-                avgLevels: avgLevels,
-                exportedAt: new Date().toISOString()
-            };
-
-            const filename = ($('exportFilename')?.value || `nifty-${new Date().toISOString().split('T')[0]}`) + '.json';
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            showStatus('✅ Exported: ' + filename);
-        }
-
-        function exportCSV() {
-            const data = getCurrentData();
-            let csv = 'Section,Field,Value\n';
-
-            // Inputs
-            csv += 'Date,Date,' + (data._date || '') + '\n';
-            csv += 'Market,Yesterday High,' + (data.Q4 || 0) + '\n';
-            csv += 'Market,Yesterday Low,' + (data.Q5 || 0) + '\n';
-            csv += 'Market,Today Open,' + (data.Q13 || 0) + '\n';
-            csv += 'Market,Today Range,' + ($('Q7')?.textContent || '') + '\n';
-
-            csv += 'Matchmaking,CE Strike,' + (data.B2 || 0) + '\n';
-            csv += 'Matchmaking,PE Strike,' + (data.D2 || 0) + '\n';
-            csv += 'CE Data,Open,' + (data.B4 || 0) + '\n';
-            csv += 'CE Data,High,' + (data.B5 || 0) + '\n';
-            csv += 'CE Data,Low,' + (data.B6 || 0) + '\n';
-            csv += 'CE Data,Close,' + (data.B7 || 0) + '\n';
-            csv += 'PE Data,Open,' + (data.D4 || 0) + '\n';
-            csv += 'PE Data,High,' + (data.D5 || 0) + '\n';
-            csv += 'PE Data,Low,' + (data.D6 || 0) + '\n';
-            csv += 'PE Data,Close,' + (data.D7 || 0) + '\n';
-
-            // OTM/ITM
-            csv += '\nOTM/ITM Pair 1 (+50),Close (J3),' + (data.J3 || 0) + '\n';
-            csv += 'OTM/ITM Pair 1 (+50),Low (K3),' + (data.K3 || 0) + '\n';
-            csv += 'OTM/ITM Pair 1 (-50),Close (J4),' + (data.J4 || 0) + '\n';
-            csv += 'OTM/ITM Pair 1 (-50),Low (K4),' + (data.K4 || 0) + '\n';
-            csv += 'OTM/ITM Pair 1,ITM Close (N3),' + (data.N3 || 0) + '\n';
-            csv += 'OTM/ITM Pair 1,ITM Close (N4),' + (data.N4 || 0) + '\n';
-            csv += 'OTM/ITM Pair 1,Boundary J5,' + ($('J5')?.textContent || '') + '\n';
-            csv += 'OTM/ITM Pair 1,Target N5,' + ($('N5')?.textContent || '') + '\n';
-
-            csv += '\nOTM/ITM Pair 2 (+100),Close (J8),' + (data.J8 || 0) + '\n';
-            csv += 'OTM/ITM Pair 2 (+100),Low (K8),' + (data.K8 || 0) + '\n';
-            csv += 'OTM/ITM Pair 2 (-100),Close (J9),' + (data.J9 || 0) + '\n';
-            csv += 'OTM/ITM Pair 2 (-100),Low (K9),' + (data.K9 || 0) + '\n';
-            csv += 'OTM/ITM Pair 2,ITM Close (N8),' + (data.N8 || 0) + '\n';
-            csv += 'OTM/ITM Pair 2,ITM Close (N9),' + (data.N9 || 0) + '\n';
-            csv += 'OTM/ITM Pair 2,Boundary J10,' + ($('J10')?.textContent || '') + '\n';
-            csv += 'OTM/ITM Pair 2,Target N10,' + ($('N10')?.textContent || '') + '\n';
-
-            csv += '\nOTM/ITM Pair 3 (+150),Close (J13),' + (data.J13 || 0) + '\n';
-            csv += 'OTM/ITM Pair 3 (+150),Low (K13),' + (data.K13 || 0) + '\n';
-            csv += 'OTM/ITM Pair 3 (-150),Close (J14),' + (data.J14 || 0) + '\n';
-            csv += 'OTM/ITM Pair 3 (-150),Low (K14),' + (data.K14 || 0) + '\n';
-            csv += 'OTM/ITM Pair 3,ITM Close (N13),' + (data.N13 || 0) + '\n';
-            csv += 'OTM/ITM Pair 3,ITM Close (N14),' + (data.N14 || 0) + '\n';
-            csv += 'OTM/ITM Pair 3,Boundary J15,' + ($('J15')?.textContent || '') + '\n';
-            csv += 'OTM/ITM Pair 3,Target N15,' + ($('N15')?.textContent || '') + '\n';
-
-            // Expiry
-            csv += '\nExpiry,ATM Call,' + ($('J21')?.textContent || '') + '\n';
-            csv += 'Expiry,ATM Put,' + ($('K21')?.textContent || '') + '\n';
-            csv += 'Expiry,OTM1 Call,' + ($('J22')?.textContent || '') + '\n';
-            csv += 'Expiry,OTM1 Put,' + ($('K22')?.textContent || '') + '\n';
-            csv += 'Expiry,OTM2 Call,' + ($('J23')?.textContent || '') + '\n';
-            csv += 'Expiry,OTM2 Put,' + ($('K23')?.textContent || '') + '\n';
-            csv += 'Expiry,OTM3 Call,' + ($('J24')?.textContent || '') + '\n';
-            csv += 'Expiry,OTM3 Put,' + ($('K24')?.textContent || '') + '\n';
-
-            // AVG Levels
-            csv += '\nAVG Level,CE (AR),PE (AT),Combined (G)\n';
-            const labels = ['L1 +52.2%', 'L2 +45.675%', 'L3 +39.15%', 'L4 +32.625%', 'L5 +26.11%', 'L6 +19.575%', 'L7 +13.05%', 'L8 +6.525%', 'MIDPOINT', 'L9 -6.525%', 'L10 -13.05%', 'L11 -19.575%', 'L12 -26.11%', 'L13 -32.625%', 'L14 -39.15%', 'L15 -45.675%', 'L16 -52.2%'];
-            for (let i = 0; i < 17; i++) {
-                const r = i + 3;
-                csv += labels[i] + ',' + ($(`AR${r}`)?.textContent || '') + ',' + ($(`AT${r}`)?.textContent || '') + ',' + ($(`G${r}_row`)?.textContent || '') + '\n';
-            }
-
-            const filename = ($('exportFilename')?.value || `nifty-${new Date().toISOString().split('T')[0]}`) + '.csv';
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            showStatus('✅ Exported: ' + filename);
-        }
-
-        function importJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    const inputs = data.inputs || data; // support both formats
-
-                    inputIds.forEach(id => {
-                        const el = $(id);
-                        if (el && inputs[id] !== undefined) el.value = inputs[id];
-                    });
-                    calc();
-                    showStatus('✅ Imported: ' + file.name);
-                } catch (err) {
-                    showStatus('❌ Import failed: ' + err.message, true);
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = ''; // reset for re-import
-        }
-
-        // Auto-load saved data on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem(STORAGE_KEY + '_auto');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    inputIds.forEach(id => {
-                        const el = $(id);
-                        if (el && data[id] !== undefined) el.value = data[id];
-                    });
-                    calc();
-                } catch (e) { /* ignore */ }
-            }
-        });
-
-        // Initial calculation
         calc();
-    </script>
-</body>
+        showStatus('✅ Loaded data from ' + (data._date || 'last session'));
+    } catch(e) {
+        showStatus('❌ Load failed: ' + e.message, true);
+    }
+}
 
+function clearData() {
+    if (!confirm('Clear all current values and saved data?')) return;
+    inputIds.forEach(id => {
+        const el = $(id);
+        if (el) {
+            if (id === 'B2') el.value = 23700;
+            else if (id === 'D2') el.value = 23750;
+            else el.value = 0;
+        }
+    });
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY + '_auto');
+    calc();
+    showStatus('✅ Cleared');
+}
+
+function exportJSON() {
+    const data = getCurrentData();
+    
+    // Also include all calculated values
+    const calculatedIds = ['Q7', 'L_R9', 'L_R10', 'L_R11', 'L_R12', 'L_R13', 'L_R14', 'L_R15', 'L_R16', 'L_R17',
+        'J5', 'J6', 'J10', 'J11', 'J15', 'N5', 'N6', 'N10', 'N11', 'N15',
+        'J21', 'K21', 'J22', 'K22', 'J23', 'K23', 'J24', 'K24',
+        'H9', 'H13'];
+    
+    const calculated = {};
+    calculatedIds.forEach(id => {
+        const el = $(id);
+        if (el) calculated[id] = el.textContent;
+    });
+    
+    // AVG levels
+    const avgLevels = {};
+    for (let r = 3; r <= 19; r++) {
+        avgLevels[`AR${r}`] = $(`AR${r}`)?.textContent;
+        avgLevels[`AT${r}`] = $(`AT${r}`)?.textContent;
+        avgLevels[`G${r}`] = $(`G${r}_row`)?.textContent;
+    }
+    
+    const exportData = {
+        inputs: data,
+        calculated: calculated,
+        avgLevels: avgLevels,
+        exportedAt: new Date().toISOString()
+    };
+    
+    const filename = ($('exportFilename')?.value || `nifty-${new Date().toISOString().split('T')[0]}`) + '.json';
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    showStatus('✅ Exported: ' + filename);
+}
+
+function exportCSV() {
+    const data = getCurrentData();
+    let csv = 'Section,Field,Value\n';
+    
+    // Inputs
+    csv += 'Date,Date,' + (data._date || '') + '\n';
+    csv += 'Market,Yesterday High,' + (data.Q4 || 0) + '\n';
+    csv += 'Market,Yesterday Low,' + (data.Q5 || 0) + '\n';
+    csv += 'Market,Today Open,' + (data.Q13 || 0) + '\n';
+    csv += 'Market,Today Range,' + ($('Q7')?.textContent || '') + '\n';
+    
+    csv += 'Matchmaking,CE Strike,' + (data.B2 || 0) + '\n';
+    csv += 'Matchmaking,PE Strike,' + (data.D2 || 0) + '\n';
+    csv += 'CE Data,Open,' + (data.B4 || 0) + '\n';
+    csv += 'CE Data,High,' + (data.B5 || 0) + '\n';
+    csv += 'CE Data,Low,' + (data.B6 || 0) + '\n';
+    csv += 'CE Data,Close,' + (data.B7 || 0) + '\n';
+    csv += 'PE Data,Open,' + (data.D4 || 0) + '\n';
+    csv += 'PE Data,High,' + (data.D5 || 0) + '\n';
+    csv += 'PE Data,Low,' + (data.D6 || 0) + '\n';
+    csv += 'PE Data,Close,' + (data.D7 || 0) + '\n';
+    
+    // OTM/ITM
+    csv += '\nOTM/ITM Pair 1 (+50),Close (J3),' + (data.J3 || 0) + '\n';
+    csv += 'OTM/ITM Pair 1 (+50),Low (K3),' + (data.K3 || 0) + '\n';
+    csv += 'OTM/ITM Pair 1 (-50),Close (J4),' + (data.J4 || 0) + '\n';
+    csv += 'OTM/ITM Pair 1 (-50),Low (K4),' + (data.K4 || 0) + '\n';
+    csv += 'OTM/ITM Pair 1,ITM Close (N3),' + (data.N3 || 0) + '\n';
+    csv += 'OTM/ITM Pair 1,ITM Close (N4),' + (data.N4 || 0) + '\n';
+    csv += 'OTM/ITM Pair 1,Boundary J5,' + ($('J5')?.textContent || '') + '\n';
+    csv += 'OTM/ITM Pair 1,Target N5,' + ($('N5')?.textContent || '') + '\n';
+    
+    csv += '\nOTM/ITM Pair 2 (+100),Close (J8),' + (data.J8 || 0) + '\n';
+    csv += 'OTM/ITM Pair 2 (+100),Low (K8),' + (data.K8 || 0) + '\n';
+    csv += 'OTM/ITM Pair 2 (-100),Close (J9),' + (data.J9 || 0) + '\n';
+    csv += 'OTM/ITM Pair 2 (-100),Low (K9),' + (data.K9 || 0) + '\n';
+    csv += 'OTM/ITM Pair 2,ITM Close (N8),' + (data.N8 || 0) + '\n';
+    csv += 'OTM/ITM Pair 2,ITM Close (N9),' + (data.N9 || 0) + '\n';
+    csv += 'OTM/ITM Pair 2,Boundary J10,' + ($('J10')?.textContent || '') + '\n';
+    csv += 'OTM/ITM Pair 2,Target N10,' + ($('N10')?.textContent || '') + '\n';
+    
+    csv += '\nOTM/ITM Pair 3 (+150),Close (J13),' + (data.J13 || 0) + '\n';
+    csv += 'OTM/ITM Pair 3 (+150),Low (K13),' + (data.K13 || 0) + '\n';
+    csv += 'OTM/ITM Pair 3 (-150),Close (J14),' + (data.J14 || 0) + '\n';
+    csv += 'OTM/ITM Pair 3 (-150),Low (K14),' + (data.K14 || 0) + '\n';
+    csv += 'OTM/ITM Pair 3,ITM Close (N13),' + (data.N13 || 0) + '\n';
+    csv += 'OTM/ITM Pair 3,ITM Close (N14),' + (data.N14 || 0) + '\n';
+    csv += 'OTM/ITM Pair 3,Boundary J15,' + ($('J15')?.textContent || '') + '\n';
+    csv += 'OTM/ITM Pair 3,Target N15,' + ($('N15')?.textContent || '') + '\n';
+    
+    // Expiry
+    csv += '\nExpiry,ATM Call,' + ($('J21')?.textContent || '') + '\n';
+    csv += 'Expiry,ATM Put,' + ($('K21')?.textContent || '') + '\n';
+    csv += 'Expiry,OTM1 Call,' + ($('J22')?.textContent || '') + '\n';
+    csv += 'Expiry,OTM1 Put,' + ($('K22')?.textContent || '') + '\n';
+    csv += 'Expiry,OTM2 Call,' + ($('J23')?.textContent || '') + '\n';
+    csv += 'Expiry,OTM2 Put,' + ($('K23')?.textContent || '') + '\n';
+    csv += 'Expiry,OTM3 Call,' + ($('J24')?.textContent || '') + '\n';
+    csv += 'Expiry,OTM3 Put,' + ($('K24')?.textContent || '') + '\n';
+    
+    // AVG Levels
+    csv += '\nAVG Level,CE (AR),PE (AT),Combined (G)\n';
+    const labels = ['L1 +52.2%', 'L2 +45.675%', 'L3 +39.15%', 'L4 +32.625%', 'L5 +26.11%', 'L6 +19.575%', 'L7 +13.05%', 'L8 +6.525%', 'MIDPOINT', 'L9 -6.525%', 'L10 -13.05%', 'L11 -19.575%', 'L12 -26.11%', 'L13 -32.625%', 'L14 -39.15%', 'L15 -45.675%', 'L16 -52.2%'];
+    for (let i = 0; i < 17; i++) {
+        const r = i + 3;
+        csv += labels[i] + ',' + ($(`AR${r}`)?.textContent || '') + ',' + ($(`AT${r}`)?.textContent || '') + ',' + ($(`G${r}_row`)?.textContent || '') + '\n';
+    }
+    
+    const filename = ($('exportFilename')?.value || `nifty-${new Date().toISOString().split('T')[0]}`) + '.csv';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    showStatus('✅ Exported: ' + filename);
+}
+
+function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            const inputs = data.inputs || data; // support both formats
+            
+            inputIds.forEach(id => {
+                const el = $(id);
+                if (el && inputs[id] !== undefined) el.value = inputs[id];
+            });
+            calc();
+            showStatus('✅ Imported: ' + file.name);
+        } catch(err) {
+            showStatus('❌ Import failed: ' + err.message, true);
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // reset for re-import
+}
+
+// ===== IMAGE → JSON CONVERTER (using Claude API) =====
+async function convertImageToJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    showStatus('🔄 Reading image... (this may take 10-20 seconds)');
+    
+    try {
+        // Convert image to base64
+        const base64Data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = () => reject(new Error('Failed to read image'));
+            reader.readAsDataURL(file);
+        });
+        
+        const mediaType = file.type || 'image/jpeg';
+        
+        // Prepare the prompt with explicit field mapping
+        const prompt = `You are extracting values from a NIFTY options trading screenshot. Extract ONLY the numeric values you see and return them as a JSON object with this EXACT structure (no markdown, no explanation, just JSON):
+
+{
+  "inputs": {
+    "Q4": "<Yesterday High value>",
+    "Q5": "<Yesterday Low value>",
+    "Q13": "<Today's Open value>",
+    "B2": "<CE Strike Price from MATCHMAKING table>",
+    "D2": "<PE Strike Price from MATCHMAKING table - usually same as B2>",
+    "B4": "<CE Open>",
+    "B5": "<CE High>",
+    "B6": "<CE Low>",
+    "B7": "<CE Close>",
+    "D4": "<PE Open>",
+    "D5": "<PE High>",
+    "D6": "<PE Low>",
+    "D7": "<PE Close>",
+    "J3": "<OTM row 1: First Close value (top, positive strike like +50)>",
+    "K3": "<OTM row 1: First Low value>",
+    "J4": "<OTM row 1: Second Close value (negative strike like -50)>",
+    "K4": "<OTM row 1: Second Low value>",
+    "J8": "<OTM row 2: First Close value (+100 strike)>",
+    "K8": "<OTM row 2: First Low value>",
+    "J9": "<OTM row 2: Second Close value (-100 strike)>",
+    "K9": "<OTM row 2: Second Low value>",
+    "J13": "<OTM row 3: First Close value (+150 strike)>",
+    "K13": "<OTM row 3: First Low value>",
+    "J14": "<OTM row 3: Second Close value (-150 strike)>",
+    "K14": "<OTM row 3: Second Low value>",
+    "N3": "<ITM row 1: First Close value>",
+    "N4": "<ITM row 1: Second Close value>",
+    "N8": "<ITM row 2: First Close value>",
+    "N9": "<ITM row 2: Second Close value>",
+    "N13": "<ITM row 3: First Close value>",
+    "N14": "<ITM row 3: Second Close value>"
+  }
+}
+
+Rules:
+- Return values as strings (e.g., "23782.30" not 23782.30)
+- If a value is not visible/found, use "0"
+- Do NOT include any text outside the JSON
+- Do NOT use markdown code blocks
+- OTM table has 3 pairs of rows (each pair has 2 strikes, e.g., +50 and -50)
+- Each OTM pair has Close and Low columns
+- ITM table only has Close column (no Low)
+- B2 and D2 are usually the same strike price shown in the MATCHMAKING table header`;
+
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 1000,
+                messages: [{
+                    role: "user",
+                    content: [
+                        { type: "image", source: { type: "base64", media_type: mediaType, data: base64Data } },
+                        { type: "text", text: prompt }
+                    ]
+                }]
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('API request failed: ' + response.status);
+        }
+        
+        const data = await response.json();
+        let responseText = data.content.map(c => c.text || '').filter(Boolean).join('\n');
+        
+        // Clean response - remove markdown code blocks if present
+        responseText = responseText.replace(/```json|```/g, '').trim();
+        
+        // Parse JSON
+        const parsed = JSON.parse(responseText);
+        const extractedInputs = parsed.inputs || parsed;
+        
+        // Apply values to inputs
+        let appliedCount = 0;
+        inputIds.forEach(id => {
+            const el = $(id);
+            if (el && extractedInputs[id] !== undefined && extractedInputs[id] !== "0" && extractedInputs[id] !== 0) {
+                el.value = extractedInputs[id];
+                appliedCount++;
+            }
+        });
+        
+        calc();
+        autoSave();
+        showStatus(`✅ Image converted! ${appliedCount} values extracted from ${file.name}`);
+        
+        // Show option to download extracted JSON
+        const extractedJSON = { inputs: extractedInputs };
+        const blob = new Blob([JSON.stringify(extractedJSON, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const filename = `extracted-${new Date().toISOString().split('T')[0]}.json`;
+        
+        const downloadMsg = document.createElement('div');
+        downloadMsg.innerHTML = `<a href="${url}" download="${filename}" style="color: #fff; text-decoration: underline; font-weight: 700;">💾 Download extracted JSON</a>`;
+        downloadMsg.style.cssText = 'margin-top: 4px; text-align: center;';
+        const statusEl = $('statusMsg');
+        if (statusEl) {
+            statusEl.appendChild(downloadMsg);
+            setTimeout(() => { downloadMsg.remove(); URL.revokeObjectURL(url); }, 30000);
+        }
+        
+    } catch(err) {
+        console.error(err);
+        showStatus('❌ Image conversion failed: ' + err.message, true);
+    }
+    
+    event.target.value = ''; // reset for re-upload
+}
+
+// Auto-load saved data on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem(STORAGE_KEY + '_auto');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            inputIds.forEach(id => {
+                const el = $(id);
+                if (el && data[id] !== undefined) el.value = data[id];
+            });
+            calc();
+        } catch(e) { /* ignore */ }
+    }
+});
+
+// Initial calculation
+calc();
+</script>
+</body>
 </html>
